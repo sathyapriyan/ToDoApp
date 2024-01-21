@@ -1,3 +1,8 @@
 <resources>
     <string name="app_name">ToDoApp</string>
+
+    <string name="desc_status_progress_bar">Status Progress Bar</string>
+    <string name="title_dashboard">Dashboard</string>
+    <string name="desc_nav_icon">Navigation Icon</string>
+
 </resources>

@@ -1,8 +1,16 @@
 package com.example.todoapp.data.repository
 
 import com.example.todoapp.core.util.StateHandler
+import com.example.todoapp.core.util.toToDoDBData
+import com.example.todoapp.data.model.AllToDosResponse
+import com.example.todoapp.data.model.ToDos
 import com.example.todoapp.data.remote.ApiDataSource
 import com.example.todoapp.data.room.dao.ToDoDataDao
+import com.example.todoapp.data.room.entity.ToDoData
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
 import java.io.IOException
 import javax.inject.Inject
 
@@ -11,47 +19,52 @@ class DataRepository @Inject constructor(
     private val dataDao: ToDoDataDao,
 
 ) {
-    suspend fun getAllToDos(
-    ): StateHandler<Boolean> {
-        try {
-            val response = dataApi.getAllToDos()
-            return if (response.isSuccessful) {
-                when(response.code()) {
-                    200 -> {
-                        response.body()?.let { binderResponse ->
-                            println("Master Binder Response --> $binderResponse")
-                        }
-                        StateHandler.Success(data = true)
-                    }
-                    else -> StateHandler.Error(data = false, message = response.errorBody()?.string())
+
+    fun getNewStories(storyType: Int = 1,refresh:Boolean=false): Flow<Result<List<ToDoData>>> {
+
+        return dataDao
+            .getAllStoriesList()
+            .onEach {
+                if (it.isEmpty() || refresh) {
+                    saveNewStories()
                 }
-            } else {
-                StateHandler.Error(message = response.raw().toString())
             }
-        } catch (exception: IOException) {
-            return StateHandler.Error(message = exception.localizedMessage)
-        }
+            .map {
+
+                Result.success(it)
+
+            }
+            .catch {
+                emit(Result.failure(it))
+            }
+
     }
-    suspend fun getSingleToDo(id:Int
-    ): StateHandler<Boolean> {
-        try {
-            val response = dataApi.getSingleToDo(id = id)
-            return if (response.isSuccessful) {
-                when(response.code()) {
-                    200 -> {
-                        response.body()?.let { binderResponse ->
-                            println("Master Binder Response --> $binderResponse")
-                        }
-                        StateHandler.Success(data = true)
-                    }
-                    else -> StateHandler.Error(data = false, message = response.errorBody()?.string())
+
+    fun getArticleItemsCount(): Int = dataDao.getToDoDataCount()
+
+    private suspend fun saveNewStories() {
+
+        dataApi.getAllToDos().also { allStories ->
+
+            if (dataDao.getToDoDataCount() == -1 || dataDao.getToDoDataCount() == 0) {
+
+                allStories.body()?.todos?.let { dataDao.saveData(todoData = it.map { it.toToDoDBData() }) }
+
+            } else {
+
+                val deleteResponse = dataDao.deleteStories()
+
+                if (deleteResponse != 0) {
+
+                    allStories.body()?.todos?.let { dataDao.saveData(todoData = it.map { it.toToDoDBData() }) }
+
                 }
-            } else {
-                StateHandler.Error(message = response.raw().toString())
+
             }
-        } catch (exception: IOException) {
-            return StateHandler.Error(message = exception.localizedMessage)
+
         }
+
     }
+
 
 }

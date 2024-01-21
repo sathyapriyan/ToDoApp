@@ -17,9 +17,13 @@ import kotlinx.coroutines.flow.Flow
 interface ToDoDataDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun saveMaster(masterData: List<ToDoData>)
+    suspend fun saveData(todoData: List<ToDoData>)
 
     @Query("SELECT COUNT(*) FROM  todo_data_table")
-    suspend fun getToDoDataCount(): Int
+    fun getToDoDataCount(): Int
+    @Query("SELECT * FROM todo_data_table")
+    fun getAllStoriesList(): Flow<List<ToDoData>>
+    @Query("DELETE FROM todo_data_table")
+    fun deleteStories(): Int
 
 }

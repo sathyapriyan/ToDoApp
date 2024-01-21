@@ -1,11 +1,7 @@
-package com.example.tprs.di.module
+package com.example.todoapp.core.di
 
-import com.example.tprs.data.SandsBluetooth
-import com.example.tprs.data.SandsLocation
-import com.example.tprs.data.SandsSharedPreferences
-import com.example.tprs.implementation.BluetoothImpl
-import com.example.tprs.implementation.LocationImpl
-import com.example.tprs.implementation.SharedPreferencesImpl
+import com.example.todoapp.core.implementation.SharedPreferencesImpl
+import com.example.todoapp.data.SharedPreferences
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -24,15 +20,6 @@ abstract class UtilModule {
     @Binds
     abstract fun provideSharedPreferences(
         impl: SharedPreferencesImpl
-    ): SandsSharedPreferences
+    ): SharedPreferences
 
-    @Binds
-    abstract fun provideSandsBluetooth(
-        impl: BluetoothImpl
-    ): SandsBluetooth
-
-    @Binds
-    abstract fun provideSandsLocation(
-        impl: LocationImpl
-    ): SandsLocation
 }

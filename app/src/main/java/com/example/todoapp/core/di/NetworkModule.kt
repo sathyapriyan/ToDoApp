@@ -31,58 +31,12 @@ object NetworkModule {
 
     private const val timeOutDurationInSeconds = 30L
 
-
     @Singleton
     @Provides
-    fun provideKeyStore(
-        certificate: Certificate
-    ): KeyStore {
-        val keyStoreType = KeyStore.getDefaultType()
-        val keyStore = KeyStore.getInstance(keyStoreType)
-        keyStore.load(null,null)
-        keyStore.setCertificateEntry("certificate",certificate)
-        return keyStore
-    }
-
-    @Singleton
-    @Provides
-    fun provideTrustManager(
-        keyStore: KeyStore
-    ): X509TrustManager {
-        val tmfAlgorithm = TrustManagerFactory.getDefaultAlgorithm()
-        val trustManagerFactory = TrustManagerFactory.getInstance(tmfAlgorithm)
-        trustManagerFactory.init(keyStore)
-
-        val trustManagers = trustManagerFactory.trustManagers
-
-        return trustManagers[0] as X509TrustManager
-    }
-
-    @Singleton
-    @Provides
-    fun provideSSLContext(
-        trustManager: X509TrustManager
-    ): SSLContext {
-
-        val sslContext = SSLContext.getInstance("SSL")
-        sslContext.init(null, arrayOf(trustManager), null)
-
-        return sslContext
-    }
-
-    @Singleton
-    @Provides
-    fun provideHTTPClient(
-        sslContext: SSLContext,
-        trustManager: X509TrustManager
-    ): OkHttpClient {
+    fun provideHTTPClient(): OkHttpClient {
 
         return OkHttpClient
             .Builder()
-            .sslSocketFactory(
-                sslContext.socketFactory,
-                trustManager
-            )
             .readTimeout(timeOutDurationInSeconds, TimeUnit.SECONDS)
             .connectTimeout(timeOutDurationInSeconds, TimeUnit.SECONDS)
             .build()
@@ -102,7 +56,7 @@ object NetworkModule {
 
         return Retrofit.Builder()
             //.baseUrl(BuildConfig.BASE_URL)
-            .baseUrl("BASE_URL")
+            .baseUrl("https://dummyjson.com/")
             .addConverterFactory(converterFactory)
             .client(okHttpClient)
             .build()
