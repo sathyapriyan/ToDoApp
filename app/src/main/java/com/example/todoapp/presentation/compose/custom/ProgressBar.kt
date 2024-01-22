@@ -23,14 +23,14 @@ import androidx.compose.ui.tooling.preview.Preview
 import com.example.todoapp.R
 import com.example.todoapp.ui.theme.Dimension
 import com.example.todoapp.ui.theme.GreenApp
-import com.example.todoapp.ui.theme.LightBlueApp
 import com.example.todoapp.ui.theme.ToDoAppTheme
 import com.example.todoapp.ui.theme.VioletApp
 
 @Composable
 fun ProgressBar(
     modifier: Modifier,
-    values: List<Pair<Int, Color>>
+    values: List<Pair<Int, Color>>,
+    lineOrBar:Int
 ) {
 
     println("Inside ProgressBar")
@@ -43,21 +43,19 @@ fun ProgressBar(
         )
     }
 
-    Box(
-        modifier = modifier
-    ) {
+    Box{
 
         Canvas(
-            modifier = Modifier
+            modifier = modifier
                 .fillMaxWidth()
-                .height(Dimension.progressBarHeight),
+                .height(if(lineOrBar==0)Dimension.progressLineHeight else Dimension.progressBarHeight),
             contentDescription = stringResource(id = R.string.desc_status_progress_bar),
             onDraw = {
 
                 val width = size.width
                 var occupiedWidth = 0F
 
-                repeat(values.size) {
+                repeat(values.size) { it ->
 
                     val currentWidth = (
                             values[it].first.toDouble() / values.sumOf { it.first } * width
@@ -72,7 +70,7 @@ fun ProgressBar(
                                         offset = Offset(occupiedWidth, 0F),
                                         size = Size(
                                             animateFloat.value * currentWidth,
-                                            Dimension.progressBarHeight.toPx()
+                                            if(lineOrBar==0)Dimension.progressLineHeight.toPx() else Dimension.progressBarHeight.toPx()
                                         )
                                     ),
                                     topLeft = if(it == 0) CornerRadius(Dimension.cornerRadius, Dimension.cornerRadius) else CornerRadius.Zero,
@@ -98,7 +96,7 @@ fun ProgressBar(
                             ),
                             size = Size(
                                 animateFloat.value * currentWidth,
-                                Dimension.progressBarHeight.toPx()
+                                if(lineOrBar==0)Dimension.progressLineHeight.toPx() else Dimension.progressBarHeight.toPx()
                             )
                         )
 
@@ -124,7 +122,8 @@ fun ProgressBarPreview() {
             values = listOf(
                 Pair(2, GreenApp),
                 Pair(2, VioletApp)
-                )
+                ),
+            lineOrBar=0
         )
     }
 }

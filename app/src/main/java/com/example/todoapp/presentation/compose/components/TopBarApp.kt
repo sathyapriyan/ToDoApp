@@ -1,4 +1,4 @@
-package zuper.dev.android.dashboard.presentation.compose.components
+package com.example.todoapp.presentation.compose.components
 
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.background
@@ -21,6 +21,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
 import com.example.todoapp.R
 import com.example.todoapp.ui.theme.Dimension
+import com.example.todoapp.ui.theme.Typography
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -44,7 +45,7 @@ fun TopBarApp(
             title = {
                 Text(
                     text = title,
-                   // style = Typography.titleLarge,
+                    style = Typography.titleLarge,
                     color = if (isSystemInDarkTheme()) Color.White else Color.Black
                 )
             },

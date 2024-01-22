@@ -1,23 +1,20 @@
 package com.example.todoapp.presentation.screen.main
 
-import android.content.Context
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.todoapp.core.util.CommonUtil
 import com.example.todoapp.core.util.StateHandler
-import com.example.todoapp.data.model.AllToDosResponse
-import com.example.todoapp.data.model.ToDos
 import com.example.todoapp.data.repository.DataRepository
 import com.example.todoapp.data.room.entity.ToDoData
 import dagger.hilt.android.lifecycle.HiltViewModel
-import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.delay
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 import javax.inject.Named
 
@@ -25,29 +22,75 @@ import javax.inject.Named
 class MainViewModel @Inject constructor(
     @Named("ioDispatcher")
     private val ioDispatcher: CoroutineDispatcher,
-    private val dataRepository: DataRepository,
-    @ApplicationContext private val context: Context
+    private val dataRepository: DataRepository
 ): ViewModel() {
 
-    private val _responseStatus = MutableStateFlow<StateHandler<MutableList<ToDos>>>(
-        StateHandler.Loading()
-    )
-    val responseStatus = _responseStatus.asStateFlow()
+    private val _loadCompliedToDoResponse: MutableStateFlow<StateHandler<List<ToDoData>>> =
+        MutableStateFlow(StateHandler.Loading())
 
-    private val _loadNewStoriesResponse: MutableLiveData<StateHandler<MutableList<ToDoData>>> =
-        MutableLiveData(StateHandler.Loading())
-    val loadNewStoriesResponse: LiveData<StateHandler<MutableList<ToDoData>>> =
-        _loadNewStoriesResponse
+    val loadCompliedToDoResponse: StateFlow<StateHandler<List<ToDoData>>> =
+        _loadCompliedToDoResponse
+
+    private val _loadInCompliedToDoResponse: MutableStateFlow<StateHandler<List<ToDoData>>> =
+        MutableStateFlow(StateHandler.Loading())
+
+    val loadInCompliedToDoResponse: StateFlow<StateHandler<List<ToDoData>>> =
+        _loadInCompliedToDoResponse
+
+    val totalListSize : StateFlow<Int> = dataRepository
+        .observeCount()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(),5000)
+
+    private val _loadUserIdList: MutableStateFlow<List<Int>> = MutableStateFlow(emptyList())
+
+    val loadUserIdList: StateFlow<List<Int>> =
+        _loadUserIdList
+
+    private val _loadToDosByUserId: MutableStateFlow<Map<Int,List<ToDoData>>> = MutableStateFlow(emptyMap())
+    val loadToDosByUserId: StateFlow<Map<Int,List<ToDoData>>> =
+        _loadToDosByUserId
+
+
 
     init {
-        getAllToDos()
+        getCompletedToDos()
+        getInCompletedToDos()
+        getUserIdList()
+       // getToDosByUser(userId = 5)
     }
-    fun getAllToDos(){
+
+    private fun getUserIdList(){
+        viewModelScope.launch(Dispatchers.IO) {
+            println("todo test getUserIdList --->${dataRepository.getUserIdList()}")
+
+            val response = dataRepository.getUserIdList()
+
+            val userToDos = mutableMapOf<Int, List<ToDoData>>()
+
+                response.forEach {
+                userToDos[it] = (dataRepository.getToDosByUserId(userId = it))
+            }
+            _loadToDosByUserId.emit(userToDos)
+
+        }
+    }
+    suspend fun getToDosByUser(userId: Int):List<ToDoData> = withContext(Dispatchers.IO){
+        dataRepository.getToDosByUserId(userId = userId)
+    }
+    fun getCompletedByUser(userid:Int,isCompleted:Boolean):Int {
+
+        return dataRepository.getCompliedToDoByUserId(
+            userid = userid,
+            isCompleted = isCompleted
+        )
+    }
+
+    private fun getCompletedToDos(){
 
 
         viewModelScope.launch(ioDispatcher) {
 
-            val response =  dataRepository.getNewStories()
+            val response =  dataRepository.getCompliedToDo()
 
             response.collect {
 
@@ -57,11 +100,11 @@ class MainViewModel @Inject constructor(
 
                     if (allStoriesEntityList.isNotEmpty()) {
 
-                        _loadNewStoriesResponse.postValue(StateHandler.Success(allStoriesEntityList.toMutableList()))
+                        _loadCompliedToDoResponse.emit(StateHandler.Success(allStoriesEntityList))
 
                     } else {
 
-                        dataRepository.getNewStories()
+                        dataRepository.getInCompliedToDo()
 
                     }
 
@@ -69,7 +112,43 @@ class MainViewModel @Inject constructor(
 
                 it.onFailure { throwable ->
 
-                    _loadNewStoriesResponse.postValue(StateHandler.Error(message = throwable.localizedMessage))
+                    _loadCompliedToDoResponse.emit(StateHandler.Error(message = throwable.localizedMessage))
+
+                }
+
+            }
+
+        }
+
+    }
+    private fun getInCompletedToDos(){
+
+
+        viewModelScope.launch(ioDispatcher) {
+
+            val response =  dataRepository.getInCompliedToDo()
+
+            response.collect {
+
+                it.onSuccess { allStoriesEntityList ->
+
+                    println(" Stories from DB --> $allStoriesEntityList")
+
+                    if (allStoriesEntityList.isNotEmpty()) {
+
+                        _loadInCompliedToDoResponse.emit(StateHandler.Success(allStoriesEntityList))
+
+                    } else {
+
+                        dataRepository.getInCompliedToDo()
+
+                    }
+
+                }
+
+                it.onFailure { throwable ->
+
+                    _loadInCompliedToDoResponse.emit(StateHandler.Error(message = throwable.localizedMessage))
 
                 }
 

@@ -1,4 +1,4 @@
-package zuper.dev.android.dashboard.presentation.compose.components
+package com.example.todoapp.presentation.compose.components
 
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -11,6 +11,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import com.example.todoapp.ui.theme.Typography
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -41,7 +42,7 @@ fun TabRowApp(
                text = {
                    Text(
                        text = "${tabItem.first} (${tabItem.second})",
-                      // style = body,
+                       style = Typography.titleMedium,
                        color = when(isSystemInDarkTheme()) {
                            true -> {
                                if (pagerState.currentPage == index) Color.White

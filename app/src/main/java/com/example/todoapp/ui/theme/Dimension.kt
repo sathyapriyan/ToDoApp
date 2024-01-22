@@ -16,6 +16,7 @@ object Dimension {
 
     // Progress Bar
     val progressBarHeight: Dp = 16.dp
+    val progressLineHeight: Dp = 8.dp
     const val cornerRadius = 8F
 
     // Status Type Legend

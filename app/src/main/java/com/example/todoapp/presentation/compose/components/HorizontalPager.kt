@@ -1,4 +1,4 @@
-package zuper.dev.android.dashboard.presentation.compose.components
+package com.example.todoapp.presentation.compose.components
 
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.pager.HorizontalPager

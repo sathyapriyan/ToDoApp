@@ -20,9 +20,26 @@ interface ToDoDataDao {
     suspend fun saveData(todoData: List<ToDoData>)
 
     @Query("SELECT COUNT(*) FROM  todo_data_table")
+    fun observeToDoDataCount(): Flow<Int>
+
+    @Query("SELECT COUNT(*) FROM  todo_data_table")
     fun getToDoDataCount(): Int
+
+    @Query("SELECT COUNT(*) FROM  todo_data_table WHERE userId LIKE :userid AND completed LIKE :isCompleted")
+    fun getToDoCompetedCountByUser(userid:Int,isCompleted:Boolean): Int
+
     @Query("SELECT * FROM todo_data_table")
-    fun getAllStoriesList(): Flow<List<ToDoData>>
+    fun getAllToDoList(): Flow<List<ToDoData>>
+
+    @Query("SELECT * FROM todo_data_table WHERE completed LIKE :isCompleted")
+    fun getToDoListByCompletedStatus(isCompleted:Boolean): Flow<List<ToDoData>>
+
+    @Query("SELECT DISTINCT userId FROM todo_data_table")
+    fun getUserIdList(): List<Int>
+
+    @Query("SELECT * FROM todo_data_table WHERE userId LIKE :userId")
+    fun getToDosByUserId(userId:Int): List<ToDoData>
+
     @Query("DELETE FROM todo_data_table")
     fun deleteStories(): Int
 
