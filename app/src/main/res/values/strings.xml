@@ -5,4 +5,14 @@
     <string name="title_dashboard">Dashboard</string>
     <string name="desc_nav_icon">Navigation Icon</string>
 
+
+    <string name="completed">Completed</string>
+    <string name="pending">Pending</string>
+
+    <string-array name="is_completed_options">
+        <item>@string/completed</item>
+        <item>@string/pending</item>
+    </string-array>
+
+
 </resources>
