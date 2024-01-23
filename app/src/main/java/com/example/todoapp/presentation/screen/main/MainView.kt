@@ -9,16 +9,18 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
@@ -38,6 +40,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
@@ -47,7 +50,11 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
+import androidx.paging.LoadState
+import androidx.paging.compose.collectAsLazyPagingItems
 import com.example.todoapp.R
+import com.example.todoapp.core.navigation.Screen
+import com.example.todoapp.core.util.CommonUtil
 import com.example.todoapp.core.util.StateHandler
 import com.example.todoapp.data.room.entity.ToDoData
 import com.example.todoapp.presentation.compose.components.HorizontalPagerApp
@@ -79,7 +86,7 @@ fun MainView(
 
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-    var pageCount by remember {
+    val pageCount by remember {
         mutableIntStateOf(4)
     }
     val pagerState = rememberPagerState(
@@ -98,6 +105,23 @@ fun MainView(
         mutableStateListOf<ToDoData>()
     }
 
+    var todoUpdate by remember {
+        mutableStateOf<ToDoData>(
+            ToDoData(
+                serialNumber = 0,
+                id = 0,
+                todo = "",
+                completed = false,
+                userId = 0,
+                isDeleted = false,
+                deletedOn = ""
+            )
+        )
+    }
+    var bottomSheetState by remember {
+        mutableStateOf(0)
+    }
+
     var userIdList by remember {
         mutableIntStateOf(0)
     }
@@ -105,21 +129,19 @@ fun MainView(
         mutableStateMapOf<Int, List<ToDoData>>()
     }
 
-    val tabItems =
-        listOf(
-            Pair("completed", completedListSize),
-            Pair("Pending", inCompletedListSize),
-            Pair("Usr Id", userIdList)
-        )
+    val isInterNetAvailable = CommonUtil.hasInternetConnection(context =context)
 
-    val sheetState = rememberModalBottomSheetState()
+
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     var showBottomSheet by remember { mutableStateOf(false) }
 
     val completedToDoResponse by viewModel.loadCompliedToDoResponse.collectAsState()
     val inCompletedToDoResponse by viewModel.loadInCompliedToDoResponse.collectAsState()
+
     val totalListSize by viewModel.totalListSize.collectAsState()
     val toDosByUserId by viewModel.loadToDosByUserId.collectAsState()
 
+    val articles = viewModel.getAllToDoLocal().collectAsLazyPagingItems()
 
     val statusItems = remember {
         mutableMapOf(
@@ -128,7 +150,23 @@ fun MainView(
         )
 
     }
+    val tabItems =
+        listOf(
+            Pair("completed", completedListSize),
+            Pair("Pending", inCompletedListSize),
+            Pair("Usr Id", userIdList),
+            Pair("All", articles.itemCount)
 
+        )
+
+   // val articles = if(isInterNetAvailable) viewModel.getAllToDoRemote().collectAsLazyPagingItems() else viewModel.getAllToDoLocal().collectAsLazyPagingItems()
+
+
+    LaunchedEffect(Unit){
+
+        viewModel.getCompletedToDos(inNetwork = isInterNetAvailable)
+
+    }
 
     LaunchedEffect(key1 = completedToDoResponse, block = {
         when (completedToDoResponse) {
@@ -139,8 +177,6 @@ fun MainView(
                 completedListSize = completedToDoResponse.data?.size ?: 0
                 todoListStatusCompleted.apply { completedToDoResponse.data?.let { addAll(it) } }
             }
-
-            else -> {}
         }
     })
     LaunchedEffect(key1 = inCompletedToDoResponse, block = {
@@ -152,16 +188,20 @@ fun MainView(
                 inCompletedListSize = inCompletedToDoResponse.data?.size ?: 0
                 todoListStatusInCompleted.apply { inCompletedToDoResponse.data?.let { addAll(it) } }
             }
-
-            else -> {}
         }
     })
     LaunchedEffect(key1 = toDosByUserId, block = {
         println("ToDo Test -->  userIdListResponse  $toDosByUserId")
-        toDosByUserId.entries.forEach {
-            toDoListByUserId[it.key] = it.value
+        if(toDosByUserId.isNotEmpty()){
+            toDosByUserId.entries.forEach {
+                if(it.value.isNotEmpty()){
+                    toDoListByUserId[it.key] = it.value
+                }
+            }
+            println("ToDo Test -->  toDoListByUserId  ${toDoListByUserId.entries.toList().last().value.last().todo}")
+
+            userIdList = toDosByUserId.values.size //toDosByUserId.values.sumOf { it.size }
         }
-        userIdList = toDosByUserId.values.size //toDosByUserId.values.sumOf { it.size }
     })
 
     Scaffold(
@@ -174,13 +214,15 @@ fun MainView(
         floatingActionButton = {
             FloatingActionButton(onClick = {
                 scope.launch {
-                    println("ToDo Test bottomSheetState ----->  ${sheetState.isVisible}")
+                    bottomSheetState = 0
+
                     scope.launch { sheetState.hide() }.invokeOnCompletion {
                         showBottomSheet = false
                     }
                     scope.launch { sheetState.show() }.invokeOnCompletion {
                         showBottomSheet = true
                     }
+
                 }
             }) {
                 Icon(
@@ -205,6 +247,7 @@ fun MainView(
                     .wrapContentHeight()
                     .weight(2f)
                     .padding(Dimension.textPadding),
+                colors = CardDefaults.cardColors(containerColor = Color.White),
                 shape = RoundedCornerShape(Dimension.cardCornerRadius),
             ) {
                 Column {
@@ -227,7 +270,7 @@ fun MainView(
                         Text(
                             modifier = Modifier
                                 .padding(Dimension.textPadding),
-                            text = "$completedListSize of $inCompletedListSize Completed",
+                            text = "$completedListSize of $totalListSize Completed",
                             style = Typography.bodySmall,
                             color = if (isSystemInDarkTheme()) Color.White else Color.Black
                         )
@@ -284,61 +327,148 @@ fun MainView(
                     ) {
                         when (pagerState.currentPage) {
                             0 -> {
-                                items(todoListStatusCompleted) {
+                                items(todoListStatusCompleted.size) { it->
                                     ItemToDosCard(
                                         data = ToDoData(
-                                            id = it.id,
-                                            todo = it.todo,
-                                            completed = it.completed,
-                                            userId = it.userId,
-                                            serialNumber = it.serialNumber,
-                                            isDeleted = it.isDeleted,
-                                            deletedOn = it.deletedOn
-                                        )
+                                            id = todoListStatusCompleted[it].id,
+                                            todo = todoListStatusCompleted[it].todo,
+                                            completed = todoListStatusCompleted[it].completed,
+                                            userId = todoListStatusCompleted[it].userId,
+                                            serialNumber = todoListStatusCompleted[it].serialNumber,
+                                            isDeleted = todoListStatusCompleted[it].isDeleted,
+                                            deletedOn = todoListStatusCompleted[it].deletedOn
+                                        ),
+                                        onClick = {
+                                            todoUpdate = it
+                                            bottomSheetState = 1
+
+                                            showBottomSheet = true
+
+                                        }
                                     )
                                 }
 
                             }
 
                             1 -> {
-                                items(todoListStatusInCompleted) {
+                                items(todoListStatusInCompleted.size) {
                                     ItemToDosCard(
                                         data = ToDoData(
-                                            id = it.id,
-                                            todo = it.todo,
-                                            completed = it.completed,
-                                            userId = it.userId,
-                                            serialNumber = it.serialNumber,
-                                            isDeleted = it.isDeleted,
-                                            deletedOn = it.deletedOn
-                                        )
+                                            id = todoListStatusInCompleted[it].id,
+                                            todo = todoListStatusInCompleted[it].todo,
+                                            completed = todoListStatusInCompleted[it].completed,
+                                            userId = todoListStatusInCompleted[it].userId,
+                                            serialNumber = todoListStatusInCompleted[it].serialNumber,
+                                            isDeleted = todoListStatusInCompleted[it].isDeleted,
+                                            deletedOn = todoListStatusInCompleted[it].deletedOn
+                                        ),
+                                        onClick = {
+                                            todoUpdate = it
+                                            bottomSheetState = 1
+
+                                            showBottomSheet = true
+                                        }
                                     )
                                 }
 
                             }
-
-                            else -> {
-                                items(toDoListByUserId.toList()) {
+                            2 -> {
+                                items(toDoListByUserId.toList().size) {
                                     ItemUserIdCard(
                                         data = ToDoData(
-                                            id = it.first,
-                                            todo = it.second.last().todo,
-                                            completed = it.second.last().completed,
-                                            userId = it.second.last().userId,
+                                            id = toDoListByUserId.entries.toList()[it].value.last().id,
+                                            todo = toDoListByUserId.entries.toList()[it].value.last().todo,
+                                            completed = toDoListByUserId.entries.toList()[it].value.last().completed,
+                                            userId = toDoListByUserId.entries.toList()[it].value.last().userId,
                                             serialNumber = 0,
                                             isDeleted = false,
                                             deletedOn = ""
                                         ),
-                                        totalListSize = it.second.size,
-                                        completedListSize = it.second.filter { it.completed }.size,
-                                        inCompletedListSize = it.second.filter { it.completed.not() }.size
+                                        totalListSize = toDoListByUserId.entries.toList()[it].value.size,
+                                        completedListSize = toDoListByUserId.entries.toList()[it].value.filter { it.completed }.size,
+                                        inCompletedListSize = toDoListByUserId.entries.toList()[it].value.filter { it.completed.not() }.size,
+                                        onClick = {
+                                            navHostController.navigate(
+                                                Screen.User.passUserId(userId = it)
+                                            )
+                                        }
                                     )
 
                                 }
                             }
+                            else ->{
+                                items(articles.itemCount) {
+                                    articles[it]?.apply {
+
+                                        println("ididididid   $id")
+                                        ItemToDosCard(
+                                            data = ToDoData(
+                                                id = id,
+                                                todo = todo,
+                                                completed = completed,
+                                                userId = userId,
+                                                serialNumber = 0,
+                                                isDeleted = false,
+                                                deletedOn = ""
+                                            ),
+                                            onClick = {
+                                                todoUpdate = it
+                                                bottomSheetState = 1
+
+                                                showBottomSheet = true
+
+                                            }
+                                        )
+                                        Divider()
+
+                                    }
+
+                                }
+
+                                when (articles.loadState.refresh) { //FIRST LOAD
+                                    is LoadState.Error -> {}
+                                    is LoadState.Loading -> { // Loading UI
+                                        item {
+                                            Column(
+                                                modifier = Modifier
+                                                    .fillParentMaxSize(),
+                                                horizontalAlignment = Alignment.CenterHorizontally,
+                                                verticalArrangement = Arrangement.Center,
+                                            ) {
+                                                Text(
+                                                    modifier = Modifier
+                                                        .padding(8.dp),
+                                                    text = "Refresh Loading"
+                                                )
+
+                                                CircularProgressIndicator(color = Color.Black)
+                                            }
+                                        }
+                                    }
+                                    else -> {}
+                                }
+
+                                when (articles.loadState.append) { // Pagination
+                                    is LoadState.Error -> {}
+                                    is LoadState.Loading -> { // Pagination Loading UI
+                                        item {
+                                            Column(
+                                                modifier = Modifier
+                                                    .fillMaxWidth(),
+                                                horizontalAlignment = Alignment.CenterHorizontally,
+                                                verticalArrangement = Arrangement.Center,
+                                            ) {
+                                                Text(text = "Pagination Loading")
+
+                                                CircularProgressIndicator(color = Color.Black)
+                                            }
+                                        }
+                                    }
+                                    else -> {}
+                                }
+                            }
                         }
                     }
-
                 }
 
             }
@@ -348,29 +478,53 @@ fun MainView(
 
         if (showBottomSheet) {
             ModalBottomSheet(
+                modifier = Modifier,
                     onDismissRequest = { showBottomSheet = false },
             sheetState = sheetState
             ){
-                UpdateToDosCard(onClickClose ={showBottomSheet=false},
-                    onClickUpdate = {
-                        showBottomSheet = false
-/*
-                        viewModel.saveWaveformAndHarmonicRecord(
-                            consumerData = it,
-                            waveformData = waveformDataW10,
-                            harmonicsData = harmonicDataH10,
-                            alarmData = alarmData
+
+                when(bottomSheetState){
+                    0->{
+                        AddToDosCard(onClickClose ={showBottomSheet=false},
+                            onClickAdd = {
+                                showBottomSheet = false
+                                viewModel.saveToDo(inNetwork = isInterNetAvailable, todo = it)
+                                Toast.makeText(
+                                    context,
+                                    "ToDo Saved",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            }
 
                         )
-*/
-                        Toast.makeText(
-                            context,
-                            "ToDo Saved",
-                            Toast.LENGTH_SHORT
-                        ).show()
-                    }
 
-                )
+                    }
+                    1->{
+                        UpdateToDosCard(onClickClose ={showBottomSheet=false},
+                            data = todoUpdate,
+                            onClickUpdate = {
+                                showBottomSheet = false
+                                viewModel.updateToDo(inNetwork = isInterNetAvailable, todo = it)
+                                Toast.makeText(
+                                    context,
+                                    "ToDo Updated",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            },
+                            onClickDelete = {
+                                showBottomSheet = false
+                                viewModel.deleteToDo(inNetwork = isInterNetAvailable, todo = it)
+                                Toast.makeText(
+                                    context,
+                                    "ToDo Deleted",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            }
+
+                        )
+
+                    }
+                }
             }
         }
 

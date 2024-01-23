@@ -12,12 +12,11 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
@@ -32,7 +31,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -46,17 +44,14 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import com.example.todoapp.R
-import com.example.todoapp.core.util.StateHandler
+import com.example.todoapp.core.util.CommonUtil
 import com.example.todoapp.data.room.entity.ToDoData
-import com.example.todoapp.presentation.compose.components.HorizontalPagerApp
-import com.example.todoapp.presentation.compose.components.TabRowApp
 import com.example.todoapp.presentation.compose.components.TopBarApp
+import com.example.todoapp.presentation.compose.custom.AddToDosCard
 import com.example.todoapp.presentation.compose.custom.ItemToDosCard
-import com.example.todoapp.presentation.compose.custom.ItemUserIdCard
 import com.example.todoapp.presentation.compose.custom.ProgressBar
 import com.example.todoapp.presentation.compose.custom.StatusTypeLegend
 import com.example.todoapp.presentation.compose.custom.UpdateToDosCard
-import com.example.todoapp.presentation.screen.main.MainViewModel
 import com.example.todoapp.ui.theme.Dimension
 import com.example.todoapp.ui.theme.GreenApp
 import com.example.todoapp.ui.theme.Typography
@@ -67,39 +62,25 @@ import kotlinx.coroutines.launch
 @Composable
 fun UserView(
     navHostController: NavHostController,
-    viewModel: MainViewModel = hiltViewModel()
+    viewModel: UserViewModel = hiltViewModel(),
+    userId:String
 ){
 
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-    var pageCount by remember {
-        mutableIntStateOf(4)
-    }
-    val pagerState = rememberPagerState(
-        pageCount = { pageCount }
-    )
+
     var completedListSize by remember {
         mutableIntStateOf(0)
     }
     var inCompletedListSize by remember {
         mutableIntStateOf(0)
     }
-    val todoListStatusCompleted = remember {
-        mutableStateListOf<ToDoData>()
-    }
-    val todoListStatusInCompleted = remember {
-        mutableStateListOf<ToDoData>()
-    }
-
-    var userIdList by remember {
-        mutableIntStateOf(0)
-    }
     val toDoListByUserId = remember {
-        mutableStateMapOf<Int, List<ToDoData>>()
+        mutableStateListOf<ToDoData>()
     }
 
 
-    val sheetState = rememberModalBottomSheetState()
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     var showBottomSheet by remember { mutableStateOf(false) }
 
     val toDosByUserId by viewModel.loadToDosByUserId.collectAsState()
@@ -112,14 +93,35 @@ fun UserView(
         )
 
     }
+    var todoUpdate by remember {
+        mutableStateOf<ToDoData>(
+            ToDoData(
+                serialNumber = 0,
+                id = 0,
+                todo = "",
+                completed = false,
+                userId = 0,
+                isDeleted = false,
+                deletedOn = ""
+            )
+        )
+    }
+    var bottomSheetState by remember {
+        mutableStateOf(0)
+    }
+    val isInterNetAvailable = CommonUtil.hasInternetConnection(context =context)
+
+    LaunchedEffect(Unit){
+        viewModel.getToDoListByUserId(inNetwork = isInterNetAvailable,userId = userId.toInt())
+
+    }
 
 
     LaunchedEffect(key1 = toDosByUserId, block = {
         println("ToDo Test -->  userIdListResponse  $toDosByUserId")
-        toDosByUserId.entries.forEach {
-            toDoListByUserId[it.key] = it.value
-        }
-        userIdList = toDosByUserId.values.size //toDosByUserId.values.sumOf { it.size }
+        toDoListByUserId.apply { toDosByUserId.data?.let { addAll(it) } }
+        completedListSize = toDosByUserId.data?.filter { it.completed }?.size ?: 0
+        inCompletedListSize = toDosByUserId.data?.filter { it.completed.not() }?.size ?: 0
     })
 
     Scaffold(
@@ -131,6 +133,7 @@ fun UserView(
         },
         floatingActionButton = {
             FloatingActionButton(onClick = {
+                bottomSheetState = 0
                 scope.launch {
                     println("ToDo Test bottomSheetState ----->  ${sheetState.isVisible}")
                     scope.launch { sheetState.hide() }.invokeOnCompletion {
@@ -163,6 +166,7 @@ fun UserView(
                     .wrapContentHeight()
                     .weight(2f)
                     .padding(Dimension.textPadding),
+                colors = CardDefaults.cardColors(containerColor = Color.White),
                 shape = RoundedCornerShape(Dimension.cardCornerRadius),
             ) {
                 Column {
@@ -178,14 +182,14 @@ fun UserView(
                         Text(
                             modifier = Modifier
                                 .padding(Dimension.textPadding),
-                            text = "Total $totalListSize",
+                            text = "Total ${toDoListByUserId.size}",
                             style = Typography.bodySmall,
                             color = if (isSystemInDarkTheme()) Color.White else Color.Black
                         )
                         Text(
                             modifier = Modifier
                                 .padding(Dimension.textPadding),
-                            text = "$completedListSize of $inCompletedListSize Completed",
+                            text = "$completedListSize of ${toDoListByUserId.size}Completed",
                             style = Typography.bodySmall,
                             color = if (isSystemInDarkTheme()) Color.White else Color.Black
                         )
@@ -232,17 +236,22 @@ fun UserView(
                         .fillMaxWidth()
                         .padding(Dimension.profileCardPadding)
                 ) {
-                    items(todoListStatusCompleted) {
+                    items(toDoListByUserId.size) {
                         ItemToDosCard(
                             data = ToDoData(
-                                id = it.id,
-                                todo = it.todo,
-                                completed = it.completed,
-                                userId = it.userId,
-                                serialNumber = it.serialNumber,
-                                isDeleted = it.isDeleted,
-                                deletedOn = it.deletedOn
-                            )
+                                id = toDoListByUserId[it].id,
+                                todo = toDoListByUserId[it].todo,
+                                completed = toDoListByUserId[it].completed,
+                                userId = toDoListByUserId[it].userId,
+                                serialNumber = toDoListByUserId[it].serialNumber,
+                                isDeleted = toDoListByUserId[it].isDeleted,
+                                deletedOn = toDoListByUserId[it].deletedOn
+                            ), onClick = {
+                                bottomSheetState = 1
+                                todoUpdate = it
+                                showBottomSheet = true
+
+                            }
                         )
                     }
 
@@ -258,26 +267,49 @@ fun UserView(
                 onDismissRequest = { showBottomSheet = false },
                 sheetState = sheetState
             ){
-                UpdateToDosCard(onClickClose ={showBottomSheet=false},
-                    onClickUpdate = {
-                        showBottomSheet = false
-                        /*
-                                                viewModel.saveWaveformAndHarmonicRecord(
-                                                    consumerData = it,
-                                                    waveformData = waveformDataW10,
-                                                    harmonicsData = harmonicDataH10,
-                                                    alarmData = alarmData
+                when(bottomSheetState){
+                    0->{
+                        AddToDosCard(onClickClose ={showBottomSheet=false},
+                            onClickAdd = {
+                                showBottomSheet = false
+                                viewModel.saveToDo(inNetwork = isInterNetAvailable, todo = it)
+                                Toast.makeText(
+                                    context,
+                                    "ToDo Saved",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            },
+                            userId = todoUpdate.userId
 
-                                                )
-                        */
-                        Toast.makeText(
-                            context,
-                            "ToDo Saved",
-                            Toast.LENGTH_SHORT
-                        ).show()
+                        )
+
                     }
+                    1->{
+                        UpdateToDosCard(onClickClose ={showBottomSheet=false},
+                            data = todoUpdate,
+                            onClickUpdate = {
+                                showBottomSheet = false
+                                viewModel.updateToDo(inNetwork = isInterNetAvailable, todo = it)
+                                Toast.makeText(
+                                    context,
+                                    "ToDo Updated",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            },
+                            onClickDelete = {
+                                showBottomSheet = false
+                                viewModel.deleteToDo(inNetwork = isInterNetAvailable, todo = it)
+                                Toast.makeText(
+                                    context,
+                                    "ToDo Deleted",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            }
 
-                )
+                        )
+
+                    }
+                }
             }
         }
 

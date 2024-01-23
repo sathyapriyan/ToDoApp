@@ -13,6 +13,7 @@ import androidx.compose.material.MaterialTheme
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
@@ -27,17 +28,34 @@ import com.example.todoapp.ui.theme.Typography
 
 @Composable
 fun ItemToDosCard(
-    data: ToDoData
+    data: ToDoData,
+    onClick: (ToDoData) -> Unit
 ) {
 
 
-    Row {
+    Row(modifier = Modifier
+        .fillMaxWidth()
+        .clickable{
+            onClick(data)
+        }
+        .padding(Dimension.legendPadding),
+        horizontalArrangement = Arrangement.Start,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            modifier = Modifier
+                .weight(1f),
+            text = "${data.id}",
+            style = Typography.titleMedium,
+            color = if (isSystemInDarkTheme()) Color.White else Color.Black
+        )
         Column(
             modifier = Modifier
+                .weight(9f)
+
                 .wrapContentHeight()
                 .padding(Dimension.legendPadding)
         ) {
-
 
             Row(
                 modifier = Modifier
@@ -55,7 +73,7 @@ fun ItemToDosCard(
                 Text(
                     modifier = Modifier
                         .padding(start = Dimension.legendPadding),
-                    text = "Id  ${data.id}",
+                    text = "",
                     style = Typography.bodyMedium,
                     color = if (isSystemInDarkTheme()) Color.White else Color.Black
                 )
@@ -87,7 +105,10 @@ fun ItemToDosCardPreview() {
                 serialNumber = 0,
                 isDeleted = false,
                 deletedOn = ""
-            )
+            ),
+            onClick = {
+
+            }
         )
     }
 }

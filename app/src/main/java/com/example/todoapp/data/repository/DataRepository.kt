@@ -1,6 +1,12 @@
 package com.example.todoapp.data.repository
 
+import androidx.paging.Pager
+import androidx.paging.PagingConfig
+import com.example.todoapp.core.paging.MainPagingSource
+import com.example.todoapp.core.paging.ToDoPagingSource
 import com.example.todoapp.core.util.toToDoDBData
+import com.example.todoapp.data.model.AddToDo
+import com.example.todoapp.data.model.UpdateToDo
 import com.example.todoapp.data.remote.ApiDataSource
 import com.example.todoapp.data.room.dao.ToDoDataDao
 import com.example.todoapp.data.room.entity.ToDoData
@@ -15,42 +21,41 @@ class DataRepository @Inject constructor(
     private val dataDao: ToDoDataDao
 ) {
 
-    fun getCompliedToDo(): Flow<Result<List<ToDoData>>> {
+    fun getCompliedToDo(inNetwork:Boolean): Flow<Result<List<ToDoData>>> {
+        println("ToDo Test 1  --> ")
 
-
-
-        /*
-                if (CommonUtil.hasInternetConnection(context = context)){
-                    saveNewStories()
+        if(inNetwork){
+            return dataDao
+                .getToDoListByCompletedStatus(isCompleted = true)
+                .onEach {
+                    if (it.isEmpty()) {
+                        saveNewToDo()
+                    }
                 }
-        */
+                .map {
+                    Result.success(it)
 
-
-        return dataDao
-            .getToDoListByCompletedStatus(isCompleted = true)
-            .onEach {
-                if (it.isEmpty()) {
-                    saveNewStories()
                 }
-            }
-            .map {
+                .catch {
+                    emit(Result.failure(it))
+                }
 
-                Result.success(it)
+        }else{
+            return dataDao
+                .getToDoListByCompletedStatus(isCompleted = true)
+                .map {
+                    Result.success(it)
+                }
+                .catch {
+                    emit(Result.failure(it))
+                }
 
-            }
-            .catch {
-                emit(Result.failure(it))
-            }
+        }
+
+
 
     }
     fun getInCompliedToDo(): Flow<Result<List<ToDoData>>> {
-
-
-        /*
-                if (CommonUtil.hasInternetConnection(context = context)){
-                    saveNewStories()
-                }
-        */
 
 
         return dataDao
@@ -67,18 +72,42 @@ class DataRepository @Inject constructor(
     fun observeCount(): Flow<Int> = dataDao.observeToDoDataCount()
     fun getUserIdList(): List<Int> = dataDao.getUserIdList()
 
-    fun getToDosByUserId(userId: Int): List<ToDoData> = dataDao.getToDosByUserId(userId = userId)
+    suspend fun getToDosByUserId(inNetwork:Boolean,userId: Int): List<ToDoData>? {
 
-    fun getCompliedToDoByUserId(userid:Int,isCompleted:Boolean): Int = dataDao.getToDoCompetedCountByUser(
-        userid = userid,
-        isCompleted = isCompleted
-    )
+        val response =             dataApi.getAllToDosByUserId(userId = userId).body()?.todos?.map {
+            ToDoData(
+                serialNumber = 0,
+                id = it.id,
+                todo = it.todo,
+                completed = it.completed,
+                userId = it.userId,
+                isDeleted = false,
+                deletedOn = ""
+            )
+        }
 
-    private suspend fun saveNewStories() {
+        println("response   getToDosByUserId --->${response}")
+        return if(inNetwork){
+            dataApi.getAllToDosByUserId(userId = userId).body()?.todos?.map {
+                ToDoData(
+                    serialNumber = 0,
+                    id = it.id,
+                    todo = it.todo,
+                    completed = it.completed,
+                    userId = it.userId,
+                    isDeleted = false,
+                    deletedOn = ""
+                )
+            }
+        } else dataDao.getToDosByUserId(userId = userId)
+    }
 
-        dataApi.limitAndSkipToDos(limit = 150, skip = 0).also { allStories ->
 
-            println("ToDo Test allStories size  --> ${allStories.body()?.todos?.size}")
+    private suspend fun saveNewToDo() {
+
+        dataApi.getAllToDos().also { allStories ->
+
+            println("ToDo Test 3  --> ${allStories.body()?.todos?.size}")
 
             if (dataDao.getToDoDataCount() == -1 || dataDao.getToDoDataCount() == 0) {
 
@@ -99,5 +128,46 @@ class DataRepository @Inject constructor(
 
     }
 
+    suspend fun saveToDo(inNetwork:Boolean,todo:ToDoData) {
+        if(inNetwork){
+            val response = dataApi.addToDo(todo = AddToDo(todo = todo.todo, completed = todo.completed, userId = todo.userId))
+            dataDao.saveData(todoData = todo.copy(id = response.body()?.id ?: todo.id))
+        }else{
+            dataDao.saveData(todoData = todo)
+        }
+    }
+    suspend fun updateToDo(inNetwork:Boolean,todo:ToDoData) {
+        if(inNetwork){
+            val response = dataApi.updateToDo(todo = UpdateToDo(completed = todo.completed))
+            dataDao.updateData(todoData = todo.copy(completed  = response.body()?.completed ?: false))
+        }else{
+            dataDao.updateData(todoData = todo)
+        }
+    }
+    suspend fun deleteToDo(inNetwork:Boolean,todo:ToDoData) {
+        if(inNetwork){
+            val response = dataApi.deleteToDo(id = todo.id)
+            dataDao.deleteData(todoData = todo.copy(isDeleted  = response.body()?.isDeleted ?: false,deletedOn =  response.body()?.deletedOn ?: ""))
+        }else{
+            dataDao.deleteData(todoData = todo)
+        }
+    }
 
+    fun getAllToDoData() = Pager(
+        config = PagingConfig(
+            pageSize = 20,
+        ),
+        pagingSourceFactory = {
+            ToDoPagingSource(dataApi)
+        }
+    ).flow
+
+    fun getAllToDoDataLocal() = Pager(
+        config = PagingConfig(
+            pageSize = 20,
+        ),
+        pagingSourceFactory = {
+            MainPagingSource(dataDao)
+        }
+    ).flow
 }

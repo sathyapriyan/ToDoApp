@@ -1,5 +1,6 @@
 package com.example.todoapp.presentation.compose.custom
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -9,6 +10,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
@@ -25,83 +27,102 @@ fun ItemUserIdCard(
     data: ToDoData,
     totalListSize: Int,
     completedListSize: Int,
-    inCompletedListSize: Int
+    inCompletedListSize: Int,
+    onClick: (Int) -> Unit
+
 ) {
 
 
-    Column(
-        modifier = Modifier
-            .wrapContentHeight()
-            .padding(Dimension.containerPadding)
-    ) {
-
-
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(Dimension.legendPadding),
-            horizontalArrangement = Arrangement.SpaceBetween
-        ){
-            Text(
-                modifier = Modifier
-                    .padding(start = Dimension.legendPadding),
-                text = "User Id ${data.userId}",
-                style = Typography.bodyMedium,
-                color = if (isSystemInDarkTheme()) Color.White else Color.Black
-            )
-            Text(
-                modifier = Modifier
-                    .padding(start = Dimension.legendPadding),
-                text = "Id ${data.id}",
-                style = Typography.bodyMedium,
-                color = if (isSystemInDarkTheme()) Color.White else Color.Black
-            )
+    Row(modifier = Modifier
+            .fillMaxWidth()
+        .clickable {
+            onClick(data.userId)
         }
-
+            .padding(Dimension.legendPadding),
+        horizontalArrangement = Arrangement.Start,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
         Text(
             modifier = Modifier
-                .padding(start = Dimension.profileCardPadding),
-            text = data.todo,
-            style = Typography.bodyMedium,
+                .weight(1f),
+            text = "${data.id}",
+            style = Typography.titleMedium,
             color = if (isSystemInDarkTheme()) Color.White else Color.Black
         )
-        Column {
+        Column(
+            modifier = Modifier
+                .weight(9f)
+                .wrapContentHeight()
+                .padding(Dimension.containerPadding)
+        ) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(
-                        start = Dimension.textPadding,
-                        end = Dimension.textPadding
-                    ),
+                    .padding(Dimension.legendPadding),
                 horizontalArrangement = Arrangement.SpaceBetween
             ){
                 Text(
                     modifier = Modifier
-                        .padding(Dimension.textPadding),
-                    text = "Total $totalListSize",
-                    style = Typography.bodySmall,
+                        .padding(start = Dimension.legendPadding),
+                    text = "User Id ${data.userId}",
+                    style = Typography.bodyMedium,
                     color = if (isSystemInDarkTheme()) Color.White else Color.Black
                 )
                 Text(
                     modifier = Modifier
-                        .padding(Dimension.textPadding),
-                    text = "$completedListSize of $inCompletedListSize Completed",
-                    style = Typography.bodySmall,
+                        .padding(start = Dimension.legendPadding),
+                    text = "",
+                    style = Typography.bodyMedium,
                     color = if (isSystemInDarkTheme()) Color.White else Color.Black
                 )
             }
-            ProgressBar(
-                modifier = Modifier,
-                values = listOf(
-                    Pair(completedListSize, GreenApp),
-                    Pair(inCompletedListSize, VioletApp)
-                ),
-                lineOrBar=0
+
+            Text(
+                modifier = Modifier
+                    .padding(start = Dimension.profileCardPadding),
+                text = data.todo,
+                style = Typography.bodyMedium,
+                color = if (isSystemInDarkTheme()) Color.White else Color.Black
             )
+            Column {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(
+                            start = Dimension.textPadding,
+                            end = Dimension.textPadding
+                        ),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ){
+                    Text(
+                        modifier = Modifier
+                            .padding(Dimension.textPadding),
+                        text = "Total $totalListSize",
+                        style = Typography.bodySmall,
+                        color = if (isSystemInDarkTheme()) Color.White else Color.Black
+                    )
+                    Text(
+                        modifier = Modifier
+                            .padding(Dimension.textPadding),
+                        text = "$completedListSize of $totalListSize Completed",
+                        style = Typography.bodySmall,
+                        color = if (isSystemInDarkTheme()) Color.White else Color.Black
+                    )
+                }
+                ProgressBar(
+                    modifier = Modifier,
+                    values = listOf(
+                        Pair(completedListSize, GreenApp),
+                        Pair(inCompletedListSize, VioletApp)
+                    ),
+                    lineOrBar=0
+                )
+
+            }
+
+
 
         }
-
-
 
     }
 
@@ -122,7 +143,10 @@ fun ItemUserIdCardPreview() {
             ),
             totalListSize = 10,
             completedListSize = 3,
-            inCompletedListSize = 7
+            inCompletedListSize = 7,
+            onClick = {
+
+            }
         )
     }
 }

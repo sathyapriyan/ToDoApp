@@ -38,28 +38,32 @@ import com.example.todoapp.ui.theme.Typography
 
 @Composable
 fun UpdateToDosCard(
+    data:ToDoData,
     onClickClose: () -> Unit,
-    onClickUpdate: (ToDoData) -> Unit
+    onClickUpdate: (ToDoData) -> Unit,
+    onClickDelete: (ToDoData) -> Unit
 
     ) {
     val context = LocalContext.current
 
-    var textFieldToDo by remember {
-        mutableStateOf(TextFieldValue())
-    }
     var textFieldUserId by remember {
-        mutableStateOf(TextFieldValue())
+        mutableStateOf(TextFieldValue(data.userId.toString()))
     }
-
+    var textFieldToDo by remember {
+        mutableStateOf(TextFieldValue(data.todo))
+    }
     val isCompletedOptions by remember {
         mutableStateOf(context.resources.getStringArray(R.array.is_completed_options).toList())
     }
-    var isCompletedModeSelected by remember {
-        mutableStateOf("")
-    }
     var isCompleted by remember {
-        mutableStateOf(false)
+        mutableStateOf(data.completed)
     }
+    var isCompletedModeSelected by remember {
+        mutableStateOf(
+            if(isCompleted) context.resources.getString(R.string.completed)
+            else context.resources.getString(R.string.pending))
+    }
+
     Column(
         modifier = Modifier
             .wrapContentHeight()
@@ -76,7 +80,7 @@ fun UpdateToDosCard(
             Text(
                 modifier = Modifier
                     .padding(start = Dimension.legendPadding),
-                text = "ADD TODO",
+                text = "Update",
                 style = Typography.titleLarge,
                 color = if (isSystemInDarkTheme()) Color.White else Color.Black
             )
@@ -88,7 +92,7 @@ fun UpdateToDosCard(
                         onClickClose()
                     },
                 painter = painterResource(id = R.drawable.ic_close),
-                contentDescription = "Connection Btn",
+                contentDescription = "close Btn",
                 tint = MaterialTheme.colors.error
             )
         }
@@ -98,7 +102,7 @@ fun UpdateToDosCard(
                 .fillMaxWidth()
                 .padding(5.dp),
             fieldName = "User Id",
-            isTextFieldEditable = { true },
+            isTextFieldEditable = { false },
             value = { textFieldUserId },
             onValueChange = {
                 textFieldUserId =it
@@ -108,8 +112,8 @@ fun UpdateToDosCard(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(5.dp),
-            fieldName = "Enter User Id",
-            isTextFieldEditable = { true },
+            fieldName = "ToDo",
+            isTextFieldEditable = { false },
             value = { textFieldToDo },
             onValueChange = {
                 textFieldToDo = it
@@ -142,7 +146,7 @@ fun UpdateToDosCard(
                 modifier = Modifier
                     .weight(1f)
                     .padding(5.dp),
-                text = "Add",
+                text = "Update",
                 isEnabled = { true }) {
                 if (textFieldToDo.text.isNotBlank() && textFieldUserId.text.isNotBlank()
                 ) {
@@ -168,7 +172,7 @@ fun UpdateToDosCard(
                 isEnabled = { true }) {
                 if (textFieldToDo.text.isNotBlank() && textFieldUserId.text.isNotBlank()
                 ) {
-                    onClickUpdate(
+                    onClickDelete(
                         ToDoData(
                             serialNumber = 0,
                             id = 1,

@@ -1,5 +1,6 @@
 package com.example.todoapp.data.remote
 
+import com.example.todoapp.data.model.AddToDo
 import com.example.todoapp.data.model.AllToDosResponse
 import com.example.todoapp.data.model.DeleteToDo
 import com.example.todoapp.data.model.LimitAndSkipToDosResponse
@@ -24,12 +25,15 @@ interface ApiDataSource {
     @GET("random")
     suspend fun getRandomToDos(): Response<AllToDosResponse>
 
+    @GET("todos/user/{userid}")
+    suspend fun getAllToDosByUserId(@Path("userid") userId:Int): Response<AllToDosResponse>
+
     @GET("todos")
     suspend fun limitAndSkipToDos(@Query("limit") limit:Int,@Query("skip") skip:Int): Response<LimitAndSkipToDosResponse>
 
     @POST("todos/add")
     suspend fun addToDo(
-        @Body todo:AllToDosResponse
+        @Body todo: AddToDo
     ): Response<ToDos>
 
     @POST("todos")
@@ -39,4 +43,5 @@ interface ApiDataSource {
 
     @DELETE("todos")
     suspend fun deleteToDo(@Query("id") id:Int): Response<DeleteToDo>
+
 }

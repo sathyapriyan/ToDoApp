@@ -113,4 +113,7 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.5.0")
 // DataStore - Preferences
     implementation("androidx.datastore:datastore-preferences:1.0.0")
+    //paging
+    implementation("androidx.paging:paging-runtime:3.1.1")
+    implementation("androidx.paging:paging-compose:1.0.0-alpha17")
 }
