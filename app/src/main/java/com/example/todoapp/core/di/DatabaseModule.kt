@@ -1,4 +1,4 @@
-package com.example.tprs.di.module
+package com.example.todoapp.core.di
 
 import android.content.Context
 import androidx.room.Room

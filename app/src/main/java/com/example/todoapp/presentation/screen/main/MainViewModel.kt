@@ -66,7 +66,7 @@ class MainViewModel @Inject constructor(
 
                         _loadCompliedToDoResponse.emit(StateHandler.Success(allStoriesEntityList))
                         getInCompletedToDos()
-                        getUserIdList(inNetwork = inNetwork)
+                        getUserIdList()
                     } else {
 
                         dataRepository.getInCompliedToDo()
@@ -121,7 +121,7 @@ class MainViewModel @Inject constructor(
         }
 
     }
-    private fun getUserIdList(inNetwork:Boolean){
+    private fun getUserIdList(){
         viewModelScope.launch(Dispatchers.IO) {
 
             val response = dataRepository.getUserIdList()
@@ -130,7 +130,7 @@ class MainViewModel @Inject constructor(
             val userToDos = mutableMapOf<Int, List<ToDoData>>()
 
             response.forEach {
-                userToDos[it] = dataRepository.getToDosByUserId(inNetwork = inNetwork,userId = it) ?: emptyList()
+                userToDos[it] = dataRepository.getToDosByUserId(userId = it) ?: emptyList()
             }
             _loadToDosByUserId.emit(userToDos)
 

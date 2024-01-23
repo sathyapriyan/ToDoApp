@@ -9,18 +9,13 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.CircularProgressIndicator
-import androidx.compose.material.ExperimentalMaterialApi
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
@@ -75,9 +70,7 @@ import kotlinx.coroutines.launch
 
 
 @OptIn(
-    ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class,
-    ExperimentalMaterialApi::class
-)
+    ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun MainView(
     navHostController: NavHostController,
@@ -106,7 +99,7 @@ fun MainView(
     }
 
     var todoUpdate by remember {
-        mutableStateOf<ToDoData>(
+        mutableStateOf(
             ToDoData(
                 serialNumber = 0,
                 id = 0,
@@ -119,7 +112,7 @@ fun MainView(
         )
     }
     var bottomSheetState by remember {
-        mutableStateOf(0)
+        mutableIntStateOf(0)
     }
 
     var userIdList by remember {
@@ -141,21 +134,15 @@ fun MainView(
     val totalListSize by viewModel.totalListSize.collectAsState()
     val toDosByUserId by viewModel.loadToDosByUserId.collectAsState()
 
-    val articles = viewModel.getAllToDoLocal().collectAsLazyPagingItems()
+    val allToDoRemote = if(isInterNetAvailable) viewModel.getAllToDoRemote().collectAsLazyPagingItems() else TODO()
+    val allToDoLocal = if(isInterNetAvailable) viewModel.getAllToDoLocal().collectAsLazyPagingItems() else TODO()
 
-    val statusItems = remember {
-        mutableMapOf(
-            Pair("completed", completedListSize),
-            Pair("Pending", inCompletedListSize)
-        )
-
-    }
     val tabItems =
         listOf(
             Pair("completed", completedListSize),
             Pair("Pending", inCompletedListSize),
             Pair("Usr Id", userIdList),
-            Pair("All", articles.itemCount)
+            Pair("All", totalListSize)
 
         )
 
@@ -208,7 +195,7 @@ fun MainView(
         containerColor = Color.White,
         topBar = {
             TopBarApp(
-                title = stringResource(id = R.string.title_dashboard)
+                title = stringResource(id = R.string.title_todo)
             )
         },
         floatingActionButton = {
@@ -237,75 +224,70 @@ fun MainView(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .padding(Dimension.containerPadding)
                 .background(color = if (isSystemInDarkTheme()) Color.Black else Color.White)
                 .verticalScroll(rememberScrollState())
         ) {
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .wrapContentHeight()
-                    .weight(2f)
-                    .padding(Dimension.textPadding),
-                colors = CardDefaults.cardColors(containerColor = Color.White),
-                shape = RoundedCornerShape(Dimension.cardCornerRadius),
-            ) {
-                Column {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(
-                                start = Dimension.textPadding,
-                                end = Dimension.textPadding
-                            ),
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        Text(
-                            modifier = Modifier
-                                .padding(Dimension.textPadding),
-                            text = "Total $totalListSize",
-                            style = Typography.bodySmall,
-                            color = if (isSystemInDarkTheme()) Color.White else Color.Black
-                        )
-                        Text(
-                            modifier = Modifier
-                                .padding(Dimension.textPadding),
-                            text = "$completedListSize of $totalListSize Completed",
-                            style = Typography.bodySmall,
-                            color = if (isSystemInDarkTheme()) Color.White else Color.Black
-                        )
-                    }
-                    ProgressBar(
-                        modifier = Modifier
-                            .padding(0.dp)
-                            .padding(Dimension.progressBarPadding),
-                        values = listOf(
-                            Pair(completedListSize, GreenApp),
-                            Pair(inCompletedListSize, VioletApp)
+            Column(modifier = Modifier
+                .fillMaxWidth()
+                .wrapContentHeight()
+                .weight(2f)
+                .padding(Dimension.textPadding),) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(
+                            start = Dimension.textPadding,
+                            end = Dimension.textPadding
                         ),
-                        lineOrBar = 1
-                    )
-                    Row(
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(
                         modifier = Modifier
-                            .fillMaxWidth(),
-                        //maxItemsInEachRow = 2,
-                        // verticalArrangement = Arrangement.Center,
-                        horizontalArrangement = Arrangement.Center
-                    ) {
-
-
-                        statusItems.forEach {
-                            StatusTypeLegend(
-                                status = it.key,
-                                value = it.value
-                            )
-                        }
+                            .padding(Dimension.textPadding),
+                        text = "Total $totalListSize",
+                        style = Typography.bodySmall,
+                        color = if (isSystemInDarkTheme()) Color.White else Color.Black
+                    )
+                    Text(
+                        modifier = Modifier
+                            .padding(Dimension.textPadding),
+                        text = "$completedListSize of $totalListSize Completed",
+                        style = Typography.bodySmall,
+                        color = if (isSystemInDarkTheme()) Color.White else Color.Black
+                    )
+                }
+                ProgressBar(
+                    modifier = Modifier
+                        .padding(0.dp)
+                        .padding(Dimension.progressBarPadding),
+                    values = listOf(
+                        Pair(completedListSize, GreenApp),
+                        Pair(inCompletedListSize, VioletApp)
+                    ),
+                    lineOrBar = 1
+                )
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth(),
+                    //maxItemsInEachRow = 2,
+                    // verticalArrangement = Arrangement.Center,
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    mutableMapOf(
+                        Pair("completed", completedListSize),
+                        Pair("Pending", inCompletedListSize)
+                    ).forEach {
+                        StatusTypeLegend(
+                            status = it.key,
+                            value = it.value
+                        )
 
                     }
-
-
                 }
+
+
             }
+
             Divider()
             Column(
                 modifier = Modifier
@@ -351,7 +333,7 @@ fun MainView(
                             }
 
                             1 -> {
-                                items(todoListStatusInCompleted.size) {
+                                items(todoListStatusInCompleted.size) { it ->
                                     ItemToDosCard(
                                         data = ToDoData(
                                             id = todoListStatusInCompleted[it].id,
@@ -373,7 +355,7 @@ fun MainView(
 
                             }
                             2 -> {
-                                items(toDoListByUserId.toList().size) {
+                                items(toDoListByUserId.toList().size) { it ->
                                     ItemUserIdCard(
                                         data = ToDoData(
                                             id = toDoListByUserId.entries.toList()[it].value.last().id,
@@ -397,75 +379,144 @@ fun MainView(
                                 }
                             }
                             else ->{
-                                items(articles.itemCount) {
-                                    articles[it]?.apply {
+                                if(isInterNetAvailable){
+                                    items(allToDoRemote.itemCount) { it ->
+                                        allToDoRemote[it]?.apply {
 
-                                        println("ididididid   $id")
-                                        ItemToDosCard(
-                                            data = ToDoData(
-                                                id = id,
-                                                todo = todo,
-                                                completed = completed,
-                                                userId = userId,
-                                                serialNumber = 0,
-                                                isDeleted = false,
-                                                deletedOn = ""
-                                            ),
-                                            onClick = {
-                                                todoUpdate = it
-                                                bottomSheetState = 1
+                                            ItemToDosCard(
+                                                data = ToDoData(
+                                                    id = id,
+                                                    todo = todo,
+                                                    completed = completed,
+                                                    userId = userId,
+                                                    serialNumber = 0,
+                                                    isDeleted = false,
+                                                    deletedOn = ""
+                                                ),
+                                                onClick = {
+                                                    todoUpdate = it
+                                                    bottomSheetState = 1
 
-                                                showBottomSheet = true
+                                                    showBottomSheet = true
 
+                                                }
+                                            )
+                                            Divider()
+                                            when (allToDoRemote.loadState.refresh) { //FIRST LOAD
+                                                is LoadState.Error -> {}
+                                                is LoadState.Loading -> { // Loading UI
+                                                    this@LazyColumn.item {
+                                                        Column(
+                                                            modifier = Modifier
+                                                                .fillParentMaxSize(),
+                                                            horizontalAlignment = Alignment.CenterHorizontally,
+                                                            verticalArrangement = Arrangement.Center,
+                                                        ) {
+                                                            Text(
+                                                                modifier = Modifier
+                                                                    .padding(8.dp),
+                                                                text = "Refresh Loading"
+                                                            )
+
+                                                            CircularProgressIndicator(color = Color.Black)
+                                                        }
+                                                    }
+                                                }
+                                                else -> {}
                                             }
-                                        )
-                                        Divider()
 
-                                    }
+                                            when (allToDoRemote.loadState.append) { // Pagination
+                                                is LoadState.Error -> {}
+                                                is LoadState.Loading -> { // Pagination Loading UI
+                                                    this@LazyColumn.item {
+                                                        Column(
+                                                            modifier = Modifier
+                                                                .fillMaxWidth(),
+                                                            horizontalAlignment = Alignment.CenterHorizontally,
+                                                            verticalArrangement = Arrangement.Center,
+                                                        ) {
+                                                            Text(text = "Pagination Loading")
 
-                                }
-
-                                when (articles.loadState.refresh) { //FIRST LOAD
-                                    is LoadState.Error -> {}
-                                    is LoadState.Loading -> { // Loading UI
-                                        item {
-                                            Column(
-                                                modifier = Modifier
-                                                    .fillParentMaxSize(),
-                                                horizontalAlignment = Alignment.CenterHorizontally,
-                                                verticalArrangement = Arrangement.Center,
-                                            ) {
-                                                Text(
-                                                    modifier = Modifier
-                                                        .padding(8.dp),
-                                                    text = "Refresh Loading"
-                                                )
-
-                                                CircularProgressIndicator(color = Color.Black)
+                                                            CircularProgressIndicator(color = Color.Black)
+                                                        }
+                                                    }
+                                                }
+                                                else -> {}
                                             }
                                         }
+
                                     }
-                                    else -> {}
-                                }
 
-                                when (articles.loadState.append) { // Pagination
-                                    is LoadState.Error -> {}
-                                    is LoadState.Loading -> { // Pagination Loading UI
-                                        item {
-                                            Column(
-                                                modifier = Modifier
-                                                    .fillMaxWidth(),
-                                                horizontalAlignment = Alignment.CenterHorizontally,
-                                                verticalArrangement = Arrangement.Center,
-                                            ) {
-                                                Text(text = "Pagination Loading")
+                                }else{
+                                    items(allToDoLocal.itemCount) { it ->
+                                        allToDoLocal[it]?.apply {
 
-                                                CircularProgressIndicator(color = Color.Black)
+                                            ItemToDosCard(
+                                                data = ToDoData(
+                                                    id = id,
+                                                    todo = todo,
+                                                    completed = completed,
+                                                    userId = userId,
+                                                    serialNumber = 0,
+                                                    isDeleted = false,
+                                                    deletedOn = ""
+                                                ),
+                                                onClick = {
+                                                    todoUpdate = it
+                                                    bottomSheetState = 1
+
+                                                    showBottomSheet = true
+
+                                                }
+                                            )
+                                            Divider()
+                                            when (allToDoLocal.loadState.refresh) { //FIRST LOAD
+                                                is LoadState.Error -> {}
+                                                is LoadState.Loading -> { // Loading UI
+                                                    this@LazyColumn.item {
+                                                        Column(
+                                                            modifier = Modifier
+                                                                .fillParentMaxSize(),
+                                                            horizontalAlignment = Alignment.CenterHorizontally,
+                                                            verticalArrangement = Arrangement.Center,
+                                                        ) {
+                                                            Text(
+                                                                modifier = Modifier
+                                                                    .padding(8.dp),
+                                                                text = "Refresh Loading"
+                                                            )
+
+                                                            CircularProgressIndicator(color = Color.Black)
+                                                        }
+                                                    }
+                                                }
+                                                else -> {}
+                                            }
+
+                                            when (allToDoLocal.loadState.append) { // Pagination
+                                                is LoadState.Error -> {}
+                                                is LoadState.Loading -> { // Pagination Loading UI
+                                                    this@LazyColumn.item {
+                                                        Column(
+                                                            modifier = Modifier
+                                                                .fillMaxWidth(),
+                                                            horizontalAlignment = Alignment.CenterHorizontally,
+                                                            verticalArrangement = Arrangement.Center,
+                                                        ) {
+                                                            Text(text = "Pagination Loading")
+
+                                                            CircularProgressIndicator(color = Color.Black)
+                                                        }
+                                                    }
+                                                }
+                                                else -> {}
                                             }
                                         }
+
                                     }
-                                    else -> {}
+
                                 }
+
                             }
                         }
                     }

@@ -13,8 +13,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.example.todoapp.ui.theme.Purple40
 import com.example.todoapp.ui.theme.PurpleGrey80
-import com.example.todoapp.ui.theme.VioletApp
 
 @Composable
 fun ButtonWithIconCustom(
@@ -22,7 +22,7 @@ fun ButtonWithIconCustom(
     text: String,
     icon: Int? = null,
     cornerRoundness: Dp = 30.dp,
-    backgroundColor: Color = VioletApp,
+    backgroundColor: Color = Purple40,
     textColor: Color = Color.White,
     isEnabled: () -> Boolean,
     onClick: () -> Unit

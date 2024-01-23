@@ -1,7 +1,6 @@
 package com.example.todoapp.presentation.screen.user
 
 import android.widget.Toast
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
@@ -13,10 +12,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
@@ -58,7 +54,7 @@ import com.example.todoapp.ui.theme.Typography
 import com.example.todoapp.ui.theme.VioletApp
 import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun UserView(
     navHostController: NavHostController,
@@ -86,15 +82,8 @@ fun UserView(
     val toDosByUserId by viewModel.loadToDosByUserId.collectAsState()
 
 
-    val statusItems = remember {
-        mutableMapOf(
-            Pair("completed", completedListSize),
-            Pair("Pending", inCompletedListSize)
-        )
-
-    }
     var todoUpdate by remember {
-        mutableStateOf<ToDoData>(
+        mutableStateOf(
             ToDoData(
                 serialNumber = 0,
                 id = 0,
@@ -107,12 +96,12 @@ fun UserView(
         )
     }
     var bottomSheetState by remember {
-        mutableStateOf(0)
+        mutableIntStateOf(0)
     }
     val isInterNetAvailable = CommonUtil.hasInternetConnection(context =context)
 
     LaunchedEffect(Unit){
-        viewModel.getToDoListByUserId(inNetwork = isInterNetAvailable,userId = userId.toInt())
+        viewModel.getToDoListByUserId(userId = userId.toInt())
 
     }
 
@@ -128,7 +117,7 @@ fun UserView(
         containerColor = Color.White,
         topBar = {
             TopBarApp(
-                title = stringResource(id = R.string.title_dashboard)
+                title = stringResource(id = R.string.title_todo)
             )
         },
         floatingActionButton = {
@@ -156,74 +145,79 @@ fun UserView(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .padding(Dimension.containerPadding)
                 .background(color = if (isSystemInDarkTheme()) Color.Black else Color.White)
                 .verticalScroll(rememberScrollState())
         ) {
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .wrapContentHeight()
-                    .weight(2f)
-                    .padding(Dimension.textPadding),
-                colors = CardDefaults.cardColors(containerColor = Color.White),
-                shape = RoundedCornerShape(Dimension.cardCornerRadius),
-            ) {
-                Column {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(
-                                start = Dimension.textPadding,
-                                end = Dimension.textPadding
-                            ),
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        Text(
-                            modifier = Modifier
-                                .padding(Dimension.textPadding),
-                            text = "Total ${toDoListByUserId.size}",
-                            style = Typography.bodySmall,
-                            color = if (isSystemInDarkTheme()) Color.White else Color.Black
-                        )
-                        Text(
-                            modifier = Modifier
-                                .padding(Dimension.textPadding),
-                            text = "$completedListSize of ${toDoListByUserId.size}Completed",
-                            style = Typography.bodySmall,
-                            color = if (isSystemInDarkTheme()) Color.White else Color.Black
-                        )
-                    }
-                    ProgressBar(
-                        modifier = Modifier
-                            .padding(0.dp)
-                            .padding(Dimension.progressBarPadding),
-                        values = listOf(
-                            Pair(completedListSize, GreenApp),
-                            Pair(inCompletedListSize, VioletApp)
+            Column(modifier = Modifier
+                .fillMaxWidth()
+                .wrapContentHeight()
+                .weight(2f)
+                .padding(Dimension.textPadding))
+            {
+                Text(
+                    modifier = Modifier
+                        .padding(Dimension.containerPadding),
+                    text = "User Id : $userId",
+                    style = Typography.titleLarge,
+                    color = if (isSystemInDarkTheme()) Color.White else Color.Black
+                )
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(
+                            start = Dimension.textPadding,
+                            end = Dimension.textPadding
                         ),
-                        lineOrBar = 1
-                    )
-                    Row(
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(
                         modifier = Modifier
-                            .fillMaxWidth(),
-                        //maxItemsInEachRow = 2,
-                        // verticalArrangement = Arrangement.Center,
-                        horizontalArrangement = Arrangement.Center
-                    ) {
+                            .padding(Dimension.textPadding),
+                        text = "Total ${toDoListByUserId.size}",
+                        style = Typography.bodySmall,
+                        color = if (isSystemInDarkTheme()) Color.White else Color.Black
+                    )
+                    Text(
+                        modifier = Modifier
+                            .padding(Dimension.textPadding),
+                        text = "$completedListSize of ${toDoListByUserId.size}Completed",
+                        style = Typography.bodySmall,
+                        color = if (isSystemInDarkTheme()) Color.White else Color.Black
+                    )
+                }
+                ProgressBar(
+                    modifier = Modifier
+                        .padding(0.dp)
+                        .padding(Dimension.progressBarPadding),
+                    values = listOf(
+                        Pair(completedListSize, GreenApp),
+                        Pair(inCompletedListSize, VioletApp)
+                    ),
+                    lineOrBar = 1
+                )
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth(),
+                    //maxItemsInEachRow = 2,
+                    // verticalArrangement = Arrangement.Center,
+                    horizontalArrangement = Arrangement.Center
+                ) {
 
 
-                        statusItems.forEach {
-                            StatusTypeLegend(
-                                status = it.key,
-                                value = it.value
-                            )
-                        }
+                    mutableMapOf(
+                        Pair("completed", completedListSize),
+                        Pair("Pending", inCompletedListSize)
+                    ).forEach {
+                        StatusTypeLegend(
+                            status = it.key,
+                            value = it.value
+                        )
 
                     }
-
 
                 }
+
+
             }
             Divider()
             Column(
@@ -236,7 +230,7 @@ fun UserView(
                         .fillMaxWidth()
                         .padding(Dimension.profileCardPadding)
                 ) {
-                    items(toDoListByUserId.size) {
+                    items(toDoListByUserId.size) { it ->
                         ItemToDosCard(
                             data = ToDoData(
                                 id = toDoListByUserId[it].id,
@@ -279,7 +273,7 @@ fun UserView(
                                     Toast.LENGTH_SHORT
                                 ).show()
                             },
-                            userId = todoUpdate.userId
+                            userId = userId.toInt()
 
                         )
 

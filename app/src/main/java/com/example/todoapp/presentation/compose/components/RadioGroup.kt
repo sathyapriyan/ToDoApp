@@ -3,6 +3,7 @@ package com.example.todoapp.presentation.compose.components
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.indication
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
@@ -23,7 +24,6 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.todoapp.R
-import com.example.todoapp.ui.theme.Pink40
 import com.example.todoapp.ui.theme.ToDoAppTheme
 
 @OptIn(ExperimentalLayoutApi::class)
@@ -46,138 +46,129 @@ fun RadioGroup(
 
     val indication = rememberRipple(
         bounded = false,
-        color = Pink40
+        color = if (isSystemInDarkTheme()) Color.Black else Color.White
     )
 
     CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
 
-        Card(
-            modifier = modifier
+        Column(
+            modifier = Modifier
                 .fillMaxWidth()
-                .padding(2.dp),
-            shape = RoundedCornerShape(8.dp),
-            elevation = 5.dp
+                .wrapContentHeight()
+                .padding(5.dp),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.Start
         ) {
 
-            Column(
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .wrapContentHeight()
+                    .padding(
+                        top = 2.dp,
+                        start = 2.dp,
+                        end = 2.dp,
+                        bottom = 0.dp
+                    ),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Start
+            ) {
+
+                Text(
+                    modifier = Modifier
+                        .wrapContentSize(),
+                    text = groupTitle,
+                    textAlign = TextAlign.Start,
+                    color = contentColor,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Bold
+                )
+
+                if (isMandatory.not()) {
+                    Text(
+                        modifier = Modifier
+                            .wrapContentSize()
+                            .padding(horizontal = 5.dp),
+                        text = "( Optional )",
+                        fontSize = 14.sp,
+                        color = Color.Gray
+                    )
+                }
+
+            }
+
+            FlowRow(
                 modifier = Modifier
                     .fillMaxWidth()
                     .wrapContentHeight()
                     .padding(5.dp),
-                verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.Start
+                horizontalArrangement = Arrangement.Start,
             ) {
 
+                items.forEachIndexed { _, item ->
+
+                    Row(
+                        modifier = Modifier
+                            .wrapContentHeight()
+                            .padding(5.dp)
+                            .clip(RoundedCornerShape(20.dp))
+                            .indication(
+                                interactionSource,
+                                indication = indication
+                            )
+                            .clickable {
+                                onSelected(item)
+                            },
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+
+                        RadioButton(
+                            selected = selected() == item,
+                            onClick = null,
+                            enabled = true,
+                            colors = RadioButtonDefaults.colors(
+                                selectedColor = contentColor
+                            )
+                        )
+
+                        Text(
+                            text = item,
+                            fontSize = 14.sp,
+                            color = contentColor,
+                            modifier = Modifier.padding(start = 2.dp, end = 2.dp)
+                        )
+
+                    }
+
+                }
+
+            }
+
+            if (isError()) {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
                         .wrapContentHeight()
-                        .padding(
-                            top = 2.dp,
-                            start = 2.dp,
-                            end = 2.dp,
-                            bottom = 0.dp
-                        ),
+                        .padding(5.dp),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.Start
                 ) {
 
-                    Text(
-                        modifier = Modifier
-                            .wrapContentSize(),
-                        text = groupTitle,
-                        textAlign = TextAlign.Start,
-                        color = contentColor,
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.Bold
+                    Icon(
+                        modifier = Modifier.size(20.dp),
+                        painter = painterResource(id = R.drawable.ic_info),
+                        contentDescription = "Warning Icon",
+                        tint = MaterialTheme.colors.error
                     )
 
-                    if (isMandatory.not()) {
-                        Text(
-                            modifier = Modifier
-                                .wrapContentSize()
-                                .padding(horizontal = 5.dp),
-                            text = "( Optional )",
-                            fontSize = 14.sp,
-                            color = Color.Gray
-                        )
-                    }
-
-                }
-
-                FlowRow(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .wrapContentHeight()
-                        .padding(5.dp),
-                    horizontalArrangement = Arrangement.Start,
-                ) {
-
-                    items.forEachIndexed { _, item ->
-
-                        Row(
-                            modifier = Modifier
-                                .wrapContentHeight()
-                                .padding(5.dp)
-                                .clip(RoundedCornerShape(20.dp))
-                                .indication(
-                                    interactionSource,
-                                    indication = indication
-                                )
-                                .clickable {
-                                    onSelected(item)
-                                },
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-
-                            RadioButton(
-                                selected = selected() == item,
-                                onClick = null,
-                                enabled = true,
-                                colors = RadioButtonDefaults.colors(
-                                    selectedColor = contentColor
-                                )
-                            )
-
-                            Text(
-                                text = item,
-                                fontSize = 14.sp,
-                                modifier = Modifier.padding(start = 2.dp, end = 2.dp)
-                            )
-
-                        }
-
-                    }
-
-                }
-
-                if (isError()) {
-                    Row(
+                    Text(
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .wrapContentHeight()
-                            .padding(5.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.Start
-                    ) {
-
-                        Icon(
-                            modifier = Modifier.size(20.dp),
-                            painter = painterResource(id = R.drawable.ic_info),
-                            contentDescription = "Warning Icon",
-                            tint = MaterialTheme.colors.error
-                        )
-
-                        Text(
-                            modifier = Modifier
-                                .wrapContentSize()
-                                .padding(vertical = 5.dp),
-                            text = errorText,
-                            fontSize = 14.sp,
-                            color = MaterialTheme.colors.error
-                        )
-
-                    }
+                            .wrapContentSize()
+                            .padding(vertical = 5.dp),
+                        text = errorText,
+                        fontSize = 14.sp,
+                        color = MaterialTheme.colors.error
+                    )
 
                 }
 
@@ -198,7 +189,7 @@ fun RadioGroupPreview() {
             modifier = Modifier.fillMaxWidth(),
             items = listOf("Running", "Maximum", "Running2", "Maximum2"),
             groupTitle = "Test Type",
-            contentColor = Pink40,
+            contentColor = if (isSystemInDarkTheme()) Color.White else Color.Black,
             selected = { "Running" },
             onSelected = {})
     }

@@ -1,30 +1,16 @@
-package com.example.tprs.di.module
+package com.example.todoapp.core.di
 
-import android.content.Context
-import com.example.todoapp.R
 import com.example.todoapp.data.remote.ApiDataSource
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
-import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
-import java.security.cert.CertificateFactory
 import java.util.concurrent.TimeUnit
 import javax.inject.Singleton
-import javax.net.ssl.SSLContext
-import java.security.KeyStore
-import java.security.cert.Certificate
-import javax.net.ssl.TrustManagerFactory
-import javax.net.ssl.X509TrustManager
 
-///////////////////////////////////////////////////////////////////////////////////////////////
-
-// Created by Srinivasan Jayakumar on 16.December.2022:09:56
-
-///////////////////////////////////////////////////////////////////////////////////////////////
 @Module
 @InstallIn(SingletonComponent::class)
 object NetworkModule {

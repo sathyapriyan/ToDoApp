@@ -1,6 +1,5 @@
 package com.example.todoapp.core.util
 
-import com.example.todoapp.data.model.AllToDosResponse
 import com.example.todoapp.data.model.ToDos
 import com.example.todoapp.data.room.entity.ToDoData
 
