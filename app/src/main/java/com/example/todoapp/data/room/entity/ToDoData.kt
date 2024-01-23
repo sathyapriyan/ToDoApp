@@ -1,6 +1,5 @@
 package com.example.todoapp.data.room.entity
 
-import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import com.example.todoapp.core.util.constants.TABLE_TODO_DATA

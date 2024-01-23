@@ -13,10 +13,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
+import com.example.todoapp.R
 import com.example.todoapp.data.room.entity.ToDoData
 import com.example.todoapp.ui.theme.Dimension
 import com.example.todoapp.ui.theme.GreenApp
+import com.example.todoapp.ui.theme.RedApp
 import com.example.todoapp.ui.theme.ToDoAppTheme
 import com.example.todoapp.ui.theme.VioletApp
 import com.example.todoapp.ui.theme.Typography
@@ -71,9 +74,9 @@ fun ItemUserIdCard(
                 Text(
                     modifier = Modifier
                         .padding(start = Dimension.legendPadding),
-                    text = "",
-                    style = Typography.bodyMedium,
-                    color = if (isSystemInDarkTheme()) Color.White else Color.Black
+                    text = if(data.completed) stringResource(id = R.string.completed) else stringResource(id = R.string.pending) ,
+                    style = Typography.bodySmall,
+                    color = if (data.completed) GreenApp else RedApp
                 )
             }
 

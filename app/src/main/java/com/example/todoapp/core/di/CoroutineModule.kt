@@ -1,4 +1,4 @@
-package com.example.tprs.di.module
+package com.example.todoapp.core.di
 
 import dagger.Module
 import dagger.Provides
@@ -8,12 +8,6 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import javax.inject.Named
 import javax.inject.Singleton
-
-///////////////////////////////////////////////////////////////////////////////////////////////
-
-// Created by Srinivasan Jayakumar on 16.December.2022:10:03
-
-///////////////////////////////////////////////////////////////////////////////////////////////
 
 @Module
 @InstallIn(SingletonComponent::class)

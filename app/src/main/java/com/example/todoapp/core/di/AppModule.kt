@@ -1,9 +1,5 @@
-package com.example.tprs.di.module
+package com.example.todoapp.core.di
 
-import android.bluetooth.BluetoothAdapter
-import android.bluetooth.BluetoothManager
-import android.content.Context
-import android.location.LocationManager
 import com.example.todoapp.data.remote.ApiDataSource
 import com.example.todoapp.data.repository.DataRepository
 import com.example.todoapp.data.room.dao.ToDoDataDao

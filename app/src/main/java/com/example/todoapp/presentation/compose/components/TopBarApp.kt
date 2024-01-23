@@ -26,7 +26,7 @@ import com.example.todoapp.ui.theme.Typography
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TopBarApp(
-    title: String = stringResource(id = R.string.title_dashboard),
+    title: String = stringResource(id = R.string.title_todo),
     elevation: Dp = Dimension.shadowElevation,
     @DrawableRes navigationIcon: Int = R.drawable.ic_nav_back,
     isNavigationVisible: Boolean = false,

@@ -31,7 +31,6 @@ import com.example.todoapp.presentation.compose.components.ButtonWithIconCustom
 import com.example.todoapp.presentation.compose.components.RadioGroup
 import com.example.todoapp.presentation.compose.components.TextFieldCustom
 import com.example.todoapp.ui.theme.Dimension
-import com.example.todoapp.ui.theme.Pink40
 import com.example.todoapp.ui.theme.ToDoAppTheme
 import com.example.todoapp.ui.theme.Typography
 
@@ -122,7 +121,7 @@ fun UpdateToDosCard(
         RadioGroup(
             modifier = Modifier.padding(5.dp),
             groupTitle = "Is Completed",
-            contentColor = Pink40,
+            contentColor = if (isSystemInDarkTheme()) Color.White else Color.Black,
             items = isCompletedOptions,
             selected = { isCompletedModeSelected },
             onSelected = { isCompletedModeSelected = it

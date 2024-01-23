@@ -72,21 +72,8 @@ class DataRepository @Inject constructor(
     fun observeCount(): Flow<Int> = dataDao.observeToDoDataCount()
     fun getUserIdList(): List<Int> = dataDao.getUserIdList()
 
-    suspend fun getToDosByUserId(inNetwork:Boolean,userId: Int): List<ToDoData>? {
+    suspend fun getToDosByUserId(inNetwork:Boolean = false,userId: Int): List<ToDoData>? {
 
-        val response =             dataApi.getAllToDosByUserId(userId = userId).body()?.todos?.map {
-            ToDoData(
-                serialNumber = 0,
-                id = it.id,
-                todo = it.todo,
-                completed = it.completed,
-                userId = it.userId,
-                isDeleted = false,
-                deletedOn = ""
-            )
-        }
-
-        println("response   getToDosByUserId --->${response}")
         return if(inNetwork){
             dataApi.getAllToDosByUserId(userId = userId).body()?.todos?.map {
                 ToDoData(
