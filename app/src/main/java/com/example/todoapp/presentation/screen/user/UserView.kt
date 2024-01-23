@@ -98,7 +98,7 @@ fun UserView(
     var bottomSheetState by remember {
         mutableIntStateOf(0)
     }
-    val isInterNetAvailable = CommonUtil.hasInternetConnection(context =context)
+    val isInterNetAvailable = CommonUtil.isNetworkAvailable(context =context)
 
     LaunchedEffect(Unit){
         viewModel.getToDoListByUserId(userId = userId.toInt())

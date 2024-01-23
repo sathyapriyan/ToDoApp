@@ -96,7 +96,7 @@ class DataRepository @Inject constructor(
 
             println("ToDo Test 3  --> ${allStories.body()?.todos?.size}")
 
-            if (dataDao.getToDoDataCount() == -1 || dataDao.getToDoDataCount() == 0) {
+            if (dataDao.isEmpty()|| dataDao.getToDoDataCount() == 0) {
 
                 allStories.body()?.todos?.let { it -> dataDao.saveData(todoData = it.map { it.toToDoDBData() }) }
             } else {

@@ -36,6 +36,8 @@ interface ToDoDataDao {
 
     @Query("SELECT * FROM todo_data_table ORDER BY id ASC LIMIT :limit OFFSET :offset")
     fun getAllToDoList(limit: Int, offset: Int): List<ToDoData>
+    @Query("SELECT * FROM todo_data_table ORDER BY id")
+    fun getAllToDoList(): List<ToDoData>
 
     @Query("SELECT * FROM todo_data_table WHERE completed LIKE :isCompleted")
     fun getToDoListByCompletedStatus(isCompleted:Boolean): Flow<List<ToDoData>>
@@ -48,5 +50,8 @@ interface ToDoDataDao {
 
     @Query("DELETE FROM todo_data_table")
     fun deleteStories(): Int
+
+    @Query("SELECT (SELECT COUNT(*) FROM todo_data_table) == 0")
+    fun isEmpty(): Boolean
 
 }

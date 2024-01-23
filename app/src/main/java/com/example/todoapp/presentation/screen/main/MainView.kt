@@ -122,7 +122,7 @@ fun MainView(
         mutableStateMapOf<Int, List<ToDoData>>()
     }
 
-    val isInterNetAvailable = CommonUtil.hasInternetConnection(context =context)
+    val isInterNetAvailable = CommonUtil.isNetworkAvailable(context =context)
 
 
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
@@ -134,8 +134,8 @@ fun MainView(
     val totalListSize by viewModel.totalListSize.collectAsState()
     val toDosByUserId by viewModel.loadToDosByUserId.collectAsState()
 
-    val allToDoRemote = if(isInterNetAvailable) viewModel.getAllToDoRemote().collectAsLazyPagingItems() else TODO()
-    val allToDoLocal = if(isInterNetAvailable) viewModel.getAllToDoLocal().collectAsLazyPagingItems() else TODO()
+    val allToDoRemote = viewModel.getAllToDoRemote().collectAsLazyPagingItems()
+    val allToDoLocal = viewModel.getAllToDoLocal().collectAsLazyPagingItems()
 
     val tabItems =
         listOf(

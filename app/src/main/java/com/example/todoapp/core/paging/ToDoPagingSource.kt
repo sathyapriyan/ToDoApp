@@ -1,6 +1,7 @@
 package com.example.todoapp.core.paging
 
 import android.net.http.HttpException
+import android.net.http.NetworkException
 import android.os.Build
 import androidx.annotation.RequiresExtension
 import androidx.paging.PagingSource
@@ -29,6 +30,8 @@ class ToDoPagingSource(
         } catch (exception: IOException) {
             return LoadResult.Error(exception)
         } catch (exception: HttpException) {
+            return LoadResult.Error(exception)
+        } catch (exception: NetworkException) {
             return LoadResult.Error(exception)
         }
     }

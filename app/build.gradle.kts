@@ -57,6 +57,7 @@ android {
             option("-Adagger.hilt.android.internal.disableAndroidSuperclassValidation=true")
         }
     }
+
 }
 
 dependencies {
@@ -76,6 +77,11 @@ dependencies {
     androidTestImplementation("androidx.compose.ui:ui-test-junit4")
     debugImplementation("androidx.compose.ui:ui-tooling")
     debugImplementation("androidx.compose.ui:ui-test-manifest")
+
+    testImplementation("com.google.truth:truth:1.3.0")
+    androidTestImplementation("com.google.truth:truth:1.3.0")
+
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.8.0-RC2")
 
     // Hilt
     implementation("com.google.dagger:hilt-android:2.48")
