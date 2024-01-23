@@ -68,6 +68,6 @@
 
 
 ## APK Download Link
-- <a href="https://github.com/sathyapriyan/NewsApp/blob/master/apk/ToDoApp.apk">The News</a>
+- <a href="https://github.com/sathyapriyan/ToDoApp/tree/master/apk/ToDoApp.apk">ToDo App</a>
 
 
