@@ -151,13 +151,13 @@ fun UpdateToDosCard(
                 ) {
                     onClickUpdate(
                         ToDoData(
-                            serialNumber = 0,
-                            id = 1,
+                            serialNumber = data.serialNumber,
+                            id = data.id,
                             todo = textFieldToDo.text,
-                            completed = false,
-                            userId = textFieldUserId.text.toInt(),
-                            isDeleted = false,
-                            deletedOn = ""
+                            completed =isCompleted,
+                            userId = data.userId,
+                            isDeleted = data.isDeleted,
+                            deletedOn = data.deletedOn
                         )
 
                     )
@@ -173,13 +173,13 @@ fun UpdateToDosCard(
                 ) {
                     onClickDelete(
                         ToDoData(
-                            serialNumber = 0,
-                            id = 1,
-                            todo = textFieldToDo.text,
-                            completed = false,
-                            userId = textFieldUserId.text.toInt(),
-                            isDeleted = false,
-                            deletedOn = ""
+                            serialNumber = data.serialNumber,
+                            id = data.id,
+                            todo = data.todo,
+                            completed = data.completed,
+                            userId = data.userId,
+                            isDeleted = data.isDeleted,
+                            deletedOn = data.deletedOn
                         )
 
                     )

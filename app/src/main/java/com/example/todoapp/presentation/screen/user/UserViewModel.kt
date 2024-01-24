@@ -9,7 +9,9 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import javax.inject.Named
@@ -25,6 +27,9 @@ class UserViewModel @Inject constructor(
         MutableStateFlow(StateHandler.Loading())
     val loadToDosByUserId: StateFlow<StateHandler<List<ToDoData>>> =
         _loadToDosByUserId
+    val totalListSize : StateFlow<Int> = dataRepository
+        .observeCount()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(),5000)
 
     fun getToDoListByUserId(userId:Int){
         viewModelScope.launch(Dispatchers.IO) {

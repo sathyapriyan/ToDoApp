@@ -22,8 +22,8 @@ interface ToDoDataDao {
     @Update
     suspend fun updateData(todoData: ToDoData)
 
-    @Delete
-    suspend fun deleteData(todoData: ToDoData)
+    @Query("DELETE FROM todo_data_table WHERE id = :id")
+    suspend fun deleteData(id: Int)
 
     @Query("SELECT COUNT(*) FROM  todo_data_table")
     fun observeToDoDataCount(): Flow<Int>

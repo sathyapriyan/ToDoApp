@@ -134,9 +134,11 @@ class DataRepository @Inject constructor(
     suspend fun deleteToDo(inNetwork:Boolean,todo:ToDoData) {
         if(inNetwork){
             val response = dataApi.deleteToDo(id = todo.id)
-            dataDao.deleteData(todoData = todo.copy(isDeleted  = response.body()?.isDeleted ?: false,deletedOn =  response.body()?.deletedOn ?: ""))
+            dataDao.deleteData(id = todo.copy(isDeleted  = response.body()?.isDeleted ?: false,deletedOn =  response.body()?.deletedOn ?: "").id)
         }else{
-            dataDao.deleteData(todoData = todo)
+
+            println("test todo ---> delete 1 ${todo.id}")
+            dataDao.deleteData(id = todo.id)
         }
     }
 

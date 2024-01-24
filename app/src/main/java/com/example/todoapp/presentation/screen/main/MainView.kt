@@ -151,6 +151,9 @@ fun MainView(
 
     LaunchedEffect(Unit){
 
+        todoListStatusCompleted.clear()
+        todoListStatusInCompleted.clear()
+        toDoListByUserId.clear()
         viewModel.getCompletedToDos(inNetwork = isInterNetAvailable)
 
     }
@@ -160,6 +163,8 @@ fun MainView(
             is StateHandler.Error -> {}
             is StateHandler.Loading -> {}
             is StateHandler.Success -> {
+                todoListStatusCompleted.clear()
+
                 println("ToDo Test -->  completedToDoResponse  $completedToDoResponse")
                 completedListSize = completedToDoResponse.data?.size ?: 0
                 todoListStatusCompleted.apply { completedToDoResponse.data?.let { addAll(it) } }
@@ -171,6 +176,7 @@ fun MainView(
             is StateHandler.Error -> {}
             is StateHandler.Loading -> {}
             is StateHandler.Success -> {
+                todoListStatusInCompleted.clear()
                 println("ToDo Test -->  inCompletedToDoResponse  $inCompletedToDoResponse")
                 inCompletedListSize = inCompletedToDoResponse.data?.size ?: 0
                 todoListStatusInCompleted.apply { inCompletedToDoResponse.data?.let { addAll(it) } }
@@ -180,6 +186,7 @@ fun MainView(
     LaunchedEffect(key1 = toDosByUserId, block = {
         println("ToDo Test -->  userIdListResponse  $toDosByUserId")
         if(toDosByUserId.isNotEmpty()){
+            toDoListByUserId.clear()
             toDosByUserId.entries.forEach {
                 if(it.value.isNotEmpty()){
                     toDoListByUserId[it.key] = it.value
@@ -536,7 +543,9 @@ fun MainView(
 
                 when(bottomSheetState){
                     0->{
-                        AddToDosCard(onClickClose ={showBottomSheet=false},
+                        AddToDosCard(
+                            id = totalListSize+1,
+                            onClickClose ={showBottomSheet=false},
                             onClickAdd = {
                                 showBottomSheet = false
                                 viewModel.saveToDo(inNetwork = isInterNetAvailable, todo = it)

@@ -32,6 +32,7 @@ import com.example.todoapp.ui.theme.Typography
 
 @Composable
 fun AddToDosCard(
+    id:Int?=null,
     userId:Int?= null,
     onClickClose: () -> Unit,
     onClickAdd: (ToDoData) -> Unit
@@ -111,7 +112,7 @@ fun AddToDosCard(
                 onClickAdd(
                     ToDoData(
                         serialNumber = 0,
-                        id = 1,
+                        id = id?: 0,
                         todo = textFieldToDo.text,
                         completed = false,
                         userId = textFieldUserId.text.toInt(),

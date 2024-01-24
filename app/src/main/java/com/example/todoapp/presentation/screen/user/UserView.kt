@@ -80,6 +80,7 @@ fun UserView(
     var showBottomSheet by remember { mutableStateOf(false) }
 
     val toDosByUserId by viewModel.loadToDosByUserId.collectAsState()
+    val totalListSize by viewModel.totalListSize.collectAsState()
 
 
     var todoUpdate by remember {
@@ -101,12 +102,13 @@ fun UserView(
     val isInterNetAvailable = CommonUtil.isNetworkAvailable(context =context)
 
     LaunchedEffect(Unit){
+        toDoListByUserId.clear()
         viewModel.getToDoListByUserId(userId = userId.toInt())
-
     }
 
 
     LaunchedEffect(key1 = toDosByUserId, block = {
+        toDoListByUserId.clear()
         println("ToDo Test -->  userIdListResponse  $toDosByUserId")
         toDoListByUserId.apply { toDosByUserId.data?.let { addAll(it) } }
         completedListSize = toDosByUserId.data?.filter { it.completed }?.size ?: 0
@@ -273,7 +275,8 @@ fun UserView(
                                     Toast.LENGTH_SHORT
                                 ).show()
                             },
-                            userId = userId.toInt()
+                            userId = userId.toInt(),
+                            id = totalListSize+1
 
                         )
 
