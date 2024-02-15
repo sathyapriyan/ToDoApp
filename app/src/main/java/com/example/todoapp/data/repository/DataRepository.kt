@@ -2,8 +2,8 @@ package com.example.todoapp.data.repository
 
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
-import com.example.todoapp.core.paging.MainPagingSource
-import com.example.todoapp.core.paging.ToDoPagingSource
+import com.example.todoapp.core.paging.LocalPagingSource
+import com.example.todoapp.core.paging.RemotePagingSource
 import com.example.todoapp.core.util.toToDoDBData
 import com.example.todoapp.data.model.AddToDo
 import com.example.todoapp.data.model.UpdateToDo
@@ -142,21 +142,20 @@ class DataRepository @Inject constructor(
         }
     }
 
-    fun getAllToDoData() = Pager(
+    fun getAllToDoData()=Pager(
         config = PagingConfig(
-            pageSize = 20,
+            pageSize = 10,
+            enablePlaceholders = false
         ),
-        pagingSourceFactory = {
-            ToDoPagingSource(dataApi)
-        }
+        pagingSourceFactory = {RemotePagingSource(dataApi)}
     ).flow
 
-    fun getAllToDoDataLocal() = Pager(
+    fun getAllToDoDataLocal()=Pager(
         config = PagingConfig(
-            pageSize = 20,
+            pageSize = 10,
+            enablePlaceholders = false
         ),
-        pagingSourceFactory = {
-            MainPagingSource(dataDao)
-        }
+        pagingSourceFactory = {LocalPagingSource(dataDao)}
     ).flow
+
 }

@@ -134,8 +134,8 @@ fun MainView(
     val totalListSize by viewModel.totalListSize.collectAsState()
     val toDosByUserId by viewModel.loadToDosByUserId.collectAsState()
 
-    val allToDoRemote = viewModel.getAllToDoRemote().collectAsLazyPagingItems()
-    val allToDoLocal = viewModel.getAllToDoLocal().collectAsLazyPagingItems()
+    val allToDoRemote = viewModel.getAllToDoRemote.collectAsLazyPagingItems()
+    val allToDoLocal = viewModel.getAllToDoLocal.collectAsLazyPagingItems()
 
     val tabItems =
         listOf(
@@ -387,27 +387,11 @@ fun MainView(
                             }
                             else ->{
                                 if(isInterNetAvailable){
+                                    println("test 15 --->result itemCount  ${allToDoRemote.itemCount}")
                                     items(allToDoRemote.itemCount) { it ->
                                         allToDoRemote[it]?.apply {
 
-                                            ItemToDosCard(
-                                                data = ToDoData(
-                                                    id = id,
-                                                    todo = todo,
-                                                    completed = completed,
-                                                    userId = userId,
-                                                    serialNumber = 0,
-                                                    isDeleted = false,
-                                                    deletedOn = ""
-                                                ),
-                                                onClick = {
-                                                    todoUpdate = it
-                                                    bottomSheetState = 1
 
-                                                    showBottomSheet = true
-
-                                                }
-                                            )
                                             Divider()
                                             when (allToDoRemote.loadState.refresh) { //FIRST LOAD
                                                 is LoadState.Error -> {}
@@ -448,13 +432,33 @@ fun MainView(
                                                         }
                                                     }
                                                 }
-                                                else -> {}
+                                                else -> {
+                                                    ItemToDosCard(
+                                                        data = ToDoData(
+                                                            id = id,
+                                                            todo = todo,
+                                                            completed = completed,
+                                                            userId = userId,
+                                                            serialNumber = 0,
+                                                            isDeleted = false,
+                                                            deletedOn = ""
+                                                        ),
+                                                        onClick = {
+                                                            todoUpdate = it
+                                                            bottomSheetState = 1
+
+                                                            showBottomSheet = true
+
+                                                        }
+                                                    )
+                                                }
                                             }
                                         }
 
                                     }
 
                                 }else{
+                                    println("test 15 --->result itemCount  ${allToDoLocal.itemCount}")
                                     items(allToDoLocal.itemCount) { it ->
                                         allToDoLocal[it]?.apply {
 

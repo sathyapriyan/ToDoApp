@@ -161,7 +161,7 @@ class MainViewModel @Inject constructor(
             )
         }
     }
-    fun getAllToDoRemote(): Flow<PagingData<ToDos>> = dataRepository.getAllToDoData().cachedIn(viewModelScope)
-    fun getAllToDoLocal(): Flow<PagingData<ToDoData>> = dataRepository.getAllToDoDataLocal().cachedIn(viewModelScope)
+    val getAllToDoRemote : Flow<PagingData<ToDos>> =  dataRepository.getAllToDoData().cachedIn(viewModelScope)
+    val getAllToDoLocal : Flow<PagingData<ToDoData>> = dataRepository.getAllToDoDataLocal().cachedIn(viewModelScope)
 
 }

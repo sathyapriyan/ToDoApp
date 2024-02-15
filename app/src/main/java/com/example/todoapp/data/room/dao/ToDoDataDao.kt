@@ -1,14 +1,12 @@
 package com.example.todoapp.data.room.dao
 
 import androidx.room.Dao
-import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
 import com.example.todoapp.data.room.entity.ToDoData
 import kotlinx.coroutines.flow.Flow
-import retrofit2.http.DELETE
 
 @Dao
 interface ToDoDataDao {
@@ -36,6 +34,10 @@ interface ToDoDataDao {
 
     @Query("SELECT * FROM todo_data_table ORDER BY id ASC LIMIT :limit OFFSET :offset")
     fun getAllToDoList(limit: Int, offset: Int): List<ToDoData>
+
+    @Query("SELECT * FROM todo_data_table ORDER BY serialNumber ASC LIMIT :limit OFFSET :offset")
+    suspend fun getPagedList(limit: Int, offset: Int): List<ToDoData>
+
     @Query("SELECT * FROM todo_data_table ORDER BY id")
     fun getAllToDoList(): List<ToDoData>
 
